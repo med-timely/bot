@@ -5,13 +5,19 @@ name = "pypi"
 
 [packages]
 aiogram = "*"
-sqlalchemy = "*"
 asyncmy = "*"
 alembic = "*"
 celery = {extras = ["redis"], version = "*"}
 pydantic-settings = "*"
+sqlalchemy = {extras = ["asyncio"], version = "*"}
 
 [dev-packages]
+black = "*"
 
 [requires]
 python_version = "3.11"
+
+[scripts]
+start = "python -m src.bot"
+migrate = "alembic revision --autogenerate -m 'auto-generated migration'"
+upgrade = "alembic upgrade head"
