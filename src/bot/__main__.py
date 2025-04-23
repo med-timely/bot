@@ -1,21 +1,17 @@
 import logging
-import os
 import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from dotenv import load_dotenv
 
-from .handlers import doses, schedules, commands
-
-# Load environment variables
-load_dotenv()
+from ..config import settings
+from .handlers import commands, doses, schedules
 
 
 def create_bot():
     return Bot(
-        token=os.getenv("BOT__TOKEN"),
+        token=settings.bot.token.get_secret_value(),
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
 

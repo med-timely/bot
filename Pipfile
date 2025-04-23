@@ -8,7 +8,6 @@ aiogram = "*"
 sqlalchemy = "*"
 asyncmy = "*"
 alembic = "*"
-python-dotenv = "*"
 celery = {extras = ["redis"], version = "*"}
 pydantic-settings = "*"
 
