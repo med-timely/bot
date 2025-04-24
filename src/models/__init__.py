@@ -30,15 +30,20 @@ class User(Base, TimedModelMixin):
     timezone: Mapped[str] = mapped_column(
         String(32), default="UTC"
     )  # e.g., "Europe/Berlin"
+    language_code: Mapped[str] = mapped_column(
+        String(5), server_default="en", nullable=False
+    )
     phone_number: Mapped[str] = mapped_column(
         String(20), unique=True, nullable=True
     )  # Optional for doctor-patient communication
     role: Mapped[Role] = mapped_column(Enum(Role), default=Role.PATIENT)
 
+    privacy_accepted: Mapped[bool] = mapped_column(default=False)
+
     # Relationships
     schedules: Mapped[list["Schedule"]] = relationship(
         back_populates="user",
-        lazy="selectin",
+        lazy="select",
         cascade="all, delete-orphan",
         single_parent=True,
     )
