@@ -3,13 +3,13 @@ import os
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 
-DATABASE_URL = os.getenv(
-    "DB__URL", "mariadb+asyncmy://medtimely:medtimely@localhost/medtimely"
-)
+from ..config import settings
+
+DATABASE_URL = settings.db.url.encoded_string()
 
 engine = create_async_engine(
     DATABASE_URL,
-    echo=os.getenv("DB__ECHO", "false").lower() in {"1", "true", "yes"},
+    echo=settings.db.echo,
 )
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
