@@ -1,7 +1,7 @@
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, Enum
+from sqlalchemy import CheckConstraint, Computed, DateTime, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.connector import Base
@@ -31,19 +31,25 @@ class User(Base, TimedModelMixin):
         String(32), default="UTC"
     )  # e.g., "Europe/Berlin"
     phone_number: Mapped[str] = mapped_column(
-        String(20), nullable=True
+        String(20), unique=True, nullable=True
     )  # Optional for doctor-patient communication
     role: Mapped[Role] = mapped_column(Enum(Role), default=Role.PATIENT)
 
     # Relationships
     schedules: Mapped[list["Schedule"]] = relationship(
-        back_populates="user", lazy="select"
+        back_populates="user",
+        lazy="selectin",
+        cascade="all, delete-orphan",
+        single_parent=True,
     )
     doses: Mapped[list["Dose"]] = relationship(back_populates="user", lazy="select")
 
 
 class Schedule(Base, TimedModelMixin):
     __tablename__ = "schedules"
+    __table_args__ = (
+        CheckConstraint("doses_per_day > 0", name="check_doses_positive"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(
@@ -60,7 +66,9 @@ class Schedule(Base, TimedModelMixin):
     start_datetime: Mapped[datetime] = mapped_column(
         DateTime(timezone=True)
     )  # Actual start time after delay
-    end_datetime: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    end_datetime: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), Computed("start_datetime + INTERVAL duration DAY")
+    )
 
     # Relationships
     user: Mapped["User"] = relationship(back_populates="schedules", lazy="joined")
