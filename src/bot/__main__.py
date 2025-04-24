@@ -6,7 +6,10 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
 from ..config import settings
+from ..database.connector import async_session
 from .handlers import commands, doses, schedules
+from .middleware.database import DatabaseMiddleware
+from .middleware.user import UserMiddleware
 
 
 def create_bot():
@@ -18,6 +21,10 @@ def create_bot():
 
 def create_dispatcher():
     dp = Dispatcher()
+
+    # Register middleware
+    dp.update.middleware(DatabaseMiddleware(async_session))
+    dp.update.middleware(UserMiddleware())
 
     dp.include_router(commands.router)
     dp.include_router(schedules.router)

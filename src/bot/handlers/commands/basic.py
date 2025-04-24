@@ -1,23 +1,9 @@
-from aiogram import Router
-from aiogram.filters import Command, CommandStart
-from aiogram.types import Message, BotCommand
+from aiogram.filters import Command
+from aiogram.types import Message
 
-router = Router()
-commands = [
-    BotCommand(command="start", description="Start the bot"),
-    BotCommand(command="help", description="Show help"),
-]
+from src.models import User
 
-
-@router.message(CommandStart())
-async def handle_start(message: Message):
-    """
-    Handle the /start command.
-    Sends a welcome message to the user introducing the bot.
-    """
-    await message.answer(
-        "💊 Welcome to MedGuard!\nUse /schedule to create a new medication schedule."
-    )
+from .router import router
 
 
 @router.message(Command("help"))
@@ -28,7 +14,21 @@ async def handle_help(message: Message):
     """
     await message.answer(
         "🆘 Help:\n"
+        "/me - Show your profile information\n"
         "/schedule - Create medication schedule\n"
         "/list - Show active medications\n"
         "/taken - Confirm dose taken"
+    )
+
+
+@router.message(Command("me"))
+async def handle_me(message: Message, user: User):
+    await message.answer(
+        f"👤 Your Profile:\n"
+        f"Name: {user.first_name}{f' {user.last_name}' if user.last_name else ''}\n"
+        f"Username: {f'@{user.username}' if user.username else 'Not set'}\n"
+        f"Role: {user.role.value}\n"
+        f"Language: {user.language_code}\n"
+        f"Timezone: {user.timezone}\n"
+        f"Privacy: {'Accepted' if user.privacy_accepted else 'Not Accepted'}"
     )

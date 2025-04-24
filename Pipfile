@@ -10,6 +10,7 @@ alembic = "*"
 celery = {extras = ["redis"], version = "*"}
 pydantic-settings = "*"
 sqlalchemy = {extras = ["asyncio"], version = "*"}
+cachetools = "*"
 
 [dev-packages]
 black = "*"
