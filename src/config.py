@@ -12,6 +12,12 @@ class DatabaseSettings(BaseModel):
     echo: bool = Field(default=False)
 
 
+class LLMSettings(BaseModel):
+    url: AnyUrl | None = None
+    default_model: str | None = None
+    api_key: SecretStr
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -25,6 +31,9 @@ class Settings(BaseSettings):
 
     # Database
     db: DatabaseSettings
+
+    # LLM
+    llm: LLMSettings
 
 
 settings = Settings()  # type: ignore

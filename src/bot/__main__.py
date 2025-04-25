@@ -5,8 +5,10 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from ..config import settings
-from ..database.connector import async_session
+from src.config import settings
+from src.database.connector import async_session
+from src.services.llm_service import LLMService
+
 from .handlers import commands, doses, schedules
 from .middleware.database import DatabaseMiddleware
 from .middleware.user import UserMiddleware
@@ -19,8 +21,16 @@ def create_bot():
     )
 
 
+def create_llm_service():
+    return LLMService(
+        api_key=settings.llm.api_key.get_secret_value(),
+        base_url=settings.llm.url.encoded_string() if settings.llm.url else None,
+        default_model=settings.llm.default_model,
+    )
+
+
 def create_dispatcher():
-    dp = Dispatcher()
+    dp = Dispatcher(llm_service=create_llm_service())
 
     # Register middleware
     dp.update.middleware(DatabaseMiddleware(async_session))

@@ -65,14 +65,16 @@ class Schedule(Base, TimedModelMixin):
         String(64), nullable=False
     )  # e.g., "10mg", "1 tablet"
     doses_per_day: Mapped[int] = mapped_column(nullable=False)
-    duration: Mapped[int] = mapped_column(nullable=False)  # Duration in days
-    comment: Mapped[str] = mapped_column(String(256), nullable=True)
+    duration: Mapped[int | None] = mapped_column(nullable=True)  # Duration in days
+    comment: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
     start_datetime: Mapped[datetime] = mapped_column(
         DateTime(timezone=True)
     )  # Actual start time after delay
     end_datetime: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), Computed("start_datetime + INTERVAL duration DAY")
+        DateTime(timezone=True),
+        Computed("start_datetime + INTERVAL duration DAY"),
+        nullable=True,
     )
 
     # Relationships

@@ -1,19 +1,7 @@
-from aiogram import Router
 from aiogram.filters import Command
-from aiogram.types import Message, BotCommand
+from aiogram.types import Message
 
-router = Router()
-commands = [
-    BotCommand(command="schedule", description="Create new medication schedule"),
-    BotCommand(command="list", description="Show active medications"),
-]
-
-
-@router.message(Command("schedule"))
-async def handle_schedule(message: Message):
-    """Handle the /schedule command to set up a new medication schedule."""
-    # TODO: create new medication schedule
-    await message.answer("Let's set up your medication schedule…")
+from .router import router
 
 
 @router.message(Command("list"))
