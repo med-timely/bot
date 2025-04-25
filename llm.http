@@ -1,0 +1,17 @@
+@baseUrl=https://openrouter.ai/api/v1/chat/completions
+@token={{$dotenv LLM__API_KEY}}
+
+###
+POST {{baseUrl}} HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "model": "mistralai/mistral-7b-instruct:free",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Extract medication details as JSON with keys: drug_name, dose, doses_per_day, duration.\nExample: {{\"drug_name\": \"Aspirin\", \"dose\": \"1 tablet\", \"doses_per_day\": 3, \"duration\": 7}}\nDO NOT PROVIDE ANY EXPLANATION, JUST VALID JSON\nInput: \"Синегнойный бактериофаг по 4 мл два раза в день 12 дней\""
+    }
+  ]
+}
