@@ -1,6 +1,8 @@
 import enum
 from datetime import datetime
+from functools import cached_property
 
+import pytz
 from sqlalchemy import CheckConstraint, Computed, DateTime, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -49,6 +51,14 @@ class User(Base, TimedModelMixin):
     )
     doses: Mapped[list["Dose"]] = relationship(back_populates="user", lazy="select")
 
+    @cached_property
+    def tz(self) -> pytz.BaseTzInfo:
+        return pytz.timezone(self.timezone)
+
+    def in_local_time(self, dt: datetime) -> datetime:
+        """Convert UTC datetime to user's local time"""
+        return dt.astimezone(self.tz)
+
 
 class Schedule(Base, TimedModelMixin):
     __tablename__ = "schedules"
@@ -78,7 +88,7 @@ class Schedule(Base, TimedModelMixin):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="schedules", lazy="joined")
+    user: Mapped["User"] = relationship(back_populates="schedules", lazy="select")
     doses: Mapped[list["Dose"]] = relationship(back_populates="schedule", lazy="select")
 
 
@@ -102,5 +112,5 @@ class Dose(Base):
     )  # Mark if user skipped confirmation
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="doses", lazy="joined")
-    schedule: Mapped["Schedule"] = relationship(back_populates="doses", lazy="joined")
+    user: Mapped["User"] = relationship(back_populates="doses", lazy="select")
+    schedule: Mapped["Schedule"] = relationship(back_populates="doses", lazy="select")

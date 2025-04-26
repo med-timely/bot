@@ -29,12 +29,29 @@ class ScheduleService:
         await self.session.refresh(schedule)
         return schedule
 
+    async def get_active_schedules(self, user_id: int) -> list[Schedule]:
+        """Get all active schedules for a user"""
+        now = datetime.now(timezone.utc)
+
+        stmt = (
+            select(Schedule)
+            .where(
+                Schedule.user_id == user_id,
+                # Either ongoing (no end date) or not yet ended
+                ((Schedule.end_datetime.is_(None)) | (Schedule.end_datetime > now)),
+            )
+            .order_by(Schedule.start_datetime)
+        )
+
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
     async def get_next_dose_time(
         self, user: User, schedule: Schedule
     ) -> Optional[datetime]:
         """Calculate the next dose time for a schedule, considering:
         - User's timezone
-        - Daylight hours (8AM-8PM local time)
+        - Daylight hours
         - Already taken doses
 
         Args:
@@ -44,18 +61,15 @@ class ScheduleService:
             datetime of next dose in UTC, or None if schedule is complete
         """
 
-        # Get user's timezone
-        tz = pytz.timezone(user.timezone)
-
         # Convert current time to user's timezone
         now_utc = datetime.now(pytz.utc)
-        now_local = now_utc.astimezone(tz)
+        now_local = user.in_local_time(now_utc)
 
         # Check if schedule has ended (in user's local time)
         if schedule.end_datetime is None:
             # If no end date, schedule is ongoing
             pass
-        elif now_local > schedule.end_datetime.astimezone(tz):
+        elif now_local > user.in_local_time(schedule.end_datetime):
             return None
 
         # Get all taken doses for this schedule (in UTC)
@@ -63,7 +77,10 @@ class ScheduleService:
             (
                 await self.session.execute(
                     select(Dose)
-                    .where(Dose.schedule_id == schedule.id)
+                    .where(
+                        Dose.schedule_id == schedule.id,
+                        Dose.taken_datetime >= now_utc.date(),
+                    )
                     .order_by(Dose.taken_datetime)
                 )
             )
@@ -72,9 +89,9 @@ class ScheduleService:
         )
 
         if not doses:
-            # First dose - use start time if within day hours
-            start_local = schedule.start_datetime.astimezone(tz)
-            return self._validate_next_local(start_local, tz)
+            # First dose in a day
+            start_local = now_local
+            return self._validate_next_local(start_local, user.tz)
 
         # Check if all doses have been taken
         if schedule.duration:
@@ -83,21 +100,29 @@ class ScheduleService:
                 return None
 
         # Calculate next dose time (distributed evenly in 12-hour window)
-        dose_interval = 12 / schedule.doses_per_day
-        last_dose_local = doses[-1].taken_datetime.astimezone(tz)
+        dose_interval = (
+            self.DAY_END.hour - self.DAY_START.hour
+        ) / schedule.doses_per_day
+        last_dose_local = user.in_local_time(doses[-1].taken_datetime)
         next_local = last_dose_local + timedelta(hours=dose_interval)
 
         # If next time would be at night, move to next morning
-        next_local = self._validate_next_local(next_local, tz)
+        next_local = self._validate_next_local(next_local, user.tz)
 
         # Check if this dose was already taken (within 1 hour window)
         next_utc = next_local.astimezone(pytz.utc)
-        for dose in doses:
-            if abs((dose.taken_datetime - next_utc).total_seconds()) < 3600:
-                # Dose already taken - skip to next interval
-                next_local += timedelta(hours=dose_interval)
-                next_local = self._validate_next_local(next_local, tz)
-                next_utc = next_local.astimezone(pytz.utc)
+
+        # Create a set of rounded dose times for faster lookup
+        rounded_dose_times = {
+            round(dose.taken_datetime.timestamp() / 3600) for dose in doses
+        }
+
+        # Check if the proposed time overlaps with any taken dose
+        while round(next_utc.timestamp() / 3600) in rounded_dose_times:
+            # Dose already taken - skip to next interval
+            next_local += timedelta(hours=dose_interval)
+            next_local = self._validate_next_local(next_local, user.tz)
+            next_utc = next_local.astimezone(pytz.utc)
 
         return next_utc
 
