@@ -65,11 +65,11 @@ async def cancel(message: Message, state: FSMContext):
 async def send_confirmation(message: Message, state_data: dict):
     text = (
         "📝 Please confirm your medication schedule:\n\n"
-        f"💊 Drug: {state_data['drug_name']}\n"
-        f"📏 Dose: {state_data['dose']}\n"
-        f"⏰ Frequency: {state_data['doses_per_day']} times/day\n"
-        f"📅 Duration: {state_data['duration']} days\n"
-        f"📝 Comment: {state_data.get('comment', 'None')}"
+        f"   💊 Drug: {state_data['drug_name']}\n"
+        f"   📏 Dose: {state_data['dose']}\n"
+        f"   ⏰ Frequency: {state_data['doses_per_day']} times/day\n"
+        f"   📅 Duration: {f"{state_data['duration']} days" if state_data.get('duration') else 'not specified'}\n"
+        f"   📝 Comment: {state_data.get('comment', 'None')}"
     )
 
     builder = ReplyKeyboardBuilder()
@@ -161,21 +161,25 @@ async def process_duration(message: Message, state: FSMContext):
         await message.answer("Please enter a valid duration:")
         return
 
-    try:
-        duration = int(message.text)
-        if duration < 1:
-            raise ValueError
-        if is_skip(message):
-            await state.update_data(duration=None)
-        else:
+    if is_skip(message):
+        await state.update_data(duration=None)
+    else:
+        try:
+            duration = int(message.text)
+            if duration < 1:
+                raise ValueError
+
             await state.update_data(duration=duration)
-        await message.answer(
-            "📝 Any comments? (Optional, type 'skip' to omit):",
-            reply_markup=get_skip_keyboard(),
-        )
-        await state.set_state(ScheduleStates.waiting_comment)
-    except ValueError:
-        await message.answer("Please enter a valid positive number:")
+
+        except ValueError:
+            await message.answer("Please enter a valid positive number:")
+            return
+
+    await message.answer(
+        "📝 Any comments? (Optional, type 'skip' to omit):",
+        reply_markup=get_skip_keyboard(),
+    )
+    await state.set_state(ScheduleStates.waiting_comment)
 
 
 @router.message(ScheduleStates.waiting_comment, F.text)

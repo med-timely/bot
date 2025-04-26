@@ -3,11 +3,12 @@ from datetime import datetime
 from functools import cached_property
 
 import pytz
-from sqlalchemy import CheckConstraint, Computed, DateTime, Enum, ForeignKey, String
+from sqlalchemy import CheckConstraint, Computed, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.connector import Base
 from .mixins import TimedModelMixin
+from .types import UTCDateTime
 from .utils import default_now
 
 
@@ -79,10 +80,10 @@ class Schedule(Base, TimedModelMixin):
     comment: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
     start_datetime: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True)
+        UTCDateTime(timezone=True)
     )  # Actual start time after delay
     end_datetime: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
+        UTCDateTime(timezone=True),
         Computed("start_datetime + INTERVAL duration DAY"),
         nullable=True,
     )
@@ -90,6 +91,9 @@ class Schedule(Base, TimedModelMixin):
     # Relationships
     user: Mapped["User"] = relationship(back_populates="schedules", lazy="select")
     doses: Mapped[list["Dose"]] = relationship(back_populates="schedule", lazy="select")
+
+    def dose_interval_in_hours(self, daylight_hours: float) -> float:
+        return daylight_hours / self.doses_per_day
 
 
 class Dose(Base):
@@ -105,7 +109,7 @@ class Dose(Base):
         ForeignKey("schedules.id", ondelete="CASCADE"), nullable=False, index=True
     )
     taken_datetime: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=default_now
+        UTCDateTime(timezone=True), default=default_now
     )
     confirmed: Mapped[bool] = mapped_column(
         default=False
@@ -114,3 +118,6 @@ class Dose(Base):
     # Relationships
     user: Mapped["User"] = relationship(back_populates="doses", lazy="select")
     schedule: Mapped["Schedule"] = relationship(back_populates="doses", lazy="select")
+
+    def __repr__(self) -> str:
+        return f"<Dose id={self.id} taken={self.taken_datetime}>"
