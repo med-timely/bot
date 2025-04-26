@@ -4,8 +4,9 @@ from typing import Optional
 import pytz
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.models import Dose, Schedule, User
+from src.models import Schedule, User, Dose
 
 
 class ScheduleService:
@@ -29,20 +30,25 @@ class ScheduleService:
         await self.session.refresh(schedule)
         return schedule
 
-    async def get_active_schedules(self, user_id: int) -> list[Schedule]:
+    async def get_active_schedules(
+        self, user_id: int, *, with_doses: bool = False
+    ) -> list[Schedule]:
         """Get all active schedules for a user"""
         now = datetime.now(timezone.utc)
 
+        options = []
+        if with_doses:
+            options.append(selectinload(Schedule.doses))
+
         stmt = (
             select(Schedule)
+            .options(*options)
             .where(
                 Schedule.user_id == user_id,
-                # Either ongoing (no end date) or not yet ended
-                ((Schedule.end_datetime.is_(None)) | (Schedule.end_datetime > now)),
+                (Schedule.end_datetime > now) | (Schedule.end_datetime.is_(None)),
             )
             .order_by(Schedule.start_datetime)
         )
-
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
@@ -73,20 +79,7 @@ class ScheduleService:
             return None
 
         # Get all taken doses for this schedule (in UTC)
-        doses = (
-            (
-                await self.session.execute(
-                    select(Dose)
-                    .where(
-                        Dose.schedule_id == schedule.id,
-                        Dose.taken_datetime >= now_utc.date(),
-                    )
-                    .order_by(Dose.taken_datetime)
-                )
-            )
-            .scalars()
-            .all()
-        )
+        doses = sorted(schedule.doses, key=lambda d: d.taken_datetime)
 
         if not doses:
             # First dose in a day
@@ -99,10 +92,10 @@ class ScheduleService:
             if len(doses) >= total_doses:
                 return None
 
-        # Calculate next dose time (distributed evenly in 12-hour window)
-        dose_interval = (
+        # Calculate next dose time (distributed evenly across day)
+        dose_interval = schedule.dose_interval_in_hours(
             self.DAY_END.hour - self.DAY_START.hour
-        ) / schedule.doses_per_day
+        )
         last_dose_local = user.in_local_time(doses[-1].taken_datetime)
         next_local = last_dose_local + timedelta(hours=dose_interval)
 
@@ -112,19 +105,62 @@ class ScheduleService:
         # Check if this dose was already taken (within 1 hour window)
         next_utc = next_local.astimezone(pytz.utc)
 
-        # Create a set of rounded dose times for faster lookup
-        rounded_dose_times = {
-            round(dose.taken_datetime.timestamp() / 3600) for dose in doses
-        }
+        return self._find_next_available_dose_time(user, doses, next_utc, dose_interval)
 
-        # Check if the proposed time overlaps with any taken dose
-        while round(next_utc.timestamp() / 3600) in rounded_dose_times:
-            # Dose already taken - skip to next interval
-            next_local += timedelta(hours=dose_interval)
-            next_local = self._validate_next_local(next_local, user.tz)
-            next_utc = next_local.astimezone(pytz.utc)
+    async def log_dose(self, user_id: int, schedule_id: int) -> tuple[bool, str]:
+        """Log a dose taken for a specific schedule
 
-        return next_utc
+        Args:
+            user_id: The user taking the dose
+            schedule_id: The schedule ID the dose belongs to
+
+        Returns:
+            Tuple of (success, message)
+        """
+
+        # Get the schedule and verify it belongs to the user
+        stmt = (
+            select(Schedule)
+            .options(selectinload(Schedule.doses))
+            .where(Schedule.id == schedule_id, Schedule.user_id == user_id)
+            .execution_options(populate_existing=True)
+        )
+        result = await self.session.execute(stmt)
+        schedule = result.scalar_one_or_none()
+
+        if not schedule:
+            return False, "Schedule not found or doesn't belong to you"
+
+        if schedule.end_datetime and datetime.now(timezone.utc) > schedule.end_datetime:
+            return False, "Schedule has ended"
+
+        # Check existing doses in time window
+        dose_interval = schedule.dose_interval_in_hours(
+            self.DAY_END.hour - self.DAY_START.hour
+        )
+        window_start = datetime.now(timezone.utc) - timedelta(
+            minutes=dose_interval * 60 / 2
+        )
+        existing_dose = next(
+            (d for d in schedule.doses if d.taken_datetime >= window_start),
+            None,
+        )
+
+        if existing_dose:
+            return False, "Dose already recorded"
+
+        # Create a new dose record
+        dose = Dose(
+            user_id=user_id,
+            schedule_id=schedule_id,
+            taken_datetime=datetime.now(timezone.utc),
+            confirmed=True,
+        )
+
+        self.session.add(dose)
+        await self.session.commit()
+
+        return True, f"✅ Dose logged successfully for {schedule.drug_name}!"
 
     def _validate_next_local(
         self, next_local: datetime, tz: pytz.BaseTzInfo
@@ -136,6 +172,34 @@ class ScheduleService:
         next_local = tz.localize(datetime.combine(next_day, self.DAY_START))
 
         return next_local
+
+    def _find_next_available_dose_time(
+        self,
+        user: User,
+        doses: list[Dose],
+        next_utc: datetime,
+        dose_interval: float,
+    ) -> datetime:
+        # We round dose timestamps to tolerance windows (half the dose interval)
+        # This allows us to detect if a proposed dose time overlaps with an already taken dose
+        # even if the times don't match exactly
+        tolerance_seconds = dose_interval / 2 * 3600
+
+        # Create a set of rounded dose times for faster lookup
+        rounded_dose_times = {
+            round(dose.taken_datetime.timestamp() / tolerance_seconds) for dose in doses
+        }
+
+        next_local = user.in_local_time(next_utc)
+
+        # Check if the proposed time overlaps with any taken dose
+        while round(next_utc.timestamp() / tolerance_seconds) in rounded_dose_times:
+            # Dose already taken - skip to next interval
+            next_local += timedelta(hours=dose_interval)
+            next_local = self._validate_next_local(next_local, user.tz)
+            next_utc = next_local.astimezone(pytz.utc)
+
+        return next_utc
 
     def _validate_schedule_data(self, data):
         required = ["drug_name", "dose", "doses_per_day"]
