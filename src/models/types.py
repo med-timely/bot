@@ -13,10 +13,10 @@ class UTCDateTime(TypeDecorator):
 
     def process_bind_param(self, value, dialect):
         if isinstance(value, datetime):
-            if value.tzinfo is not None:
-                # Convert aware datetime to UTC and remove timezone info
-                value = value.astimezone(timezone.utc).replace(tzinfo=None)
-            # If naive, assume it's UTC and proceed without modification
+            # Convert aware datetime to UTC and remove timezone info
+            value = value.astimezone(timezone.utc)
+
+        # If naive, assume it's UTC and proceed without modification
         return value
 
     def process_result_value(self, value, dialect):

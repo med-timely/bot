@@ -28,6 +28,7 @@ class LLMService:
         *,
         base_url: str | None = None,
         default_model: str | None = None,
+        timeout: int = 30,
     ):
         base_url = base_url or DEFAULT_BASE_URL
         default_model = default_model or DEFAULT_MODEL
@@ -40,6 +41,7 @@ class LLMService:
                 "HTTP-Referer": APP_DOMAIN,
                 "X-Title": APP_NAME,
             },
+            timeout=aiohttp.ClientTimeout(total=timeout),
         )
 
     async def __aenter__(self):
