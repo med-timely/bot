@@ -26,6 +26,7 @@ def create_llm_service():
         api_key=settings.llm.api_key.get_secret_value(),
         base_url=settings.llm.url.encoded_string() if settings.llm.url else None,
         default_model=settings.llm.default_model,
+        timeout=settings.llm.timeout,
     )
 
 

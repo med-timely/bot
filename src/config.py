@@ -15,6 +15,7 @@ class DatabaseSettings(BaseModel):
 class LLMSettings(BaseModel):
     url: AnyUrl | None = None
     default_model: str | None = None
+    timeout: int = 30
     api_key: SecretStr
 
 
