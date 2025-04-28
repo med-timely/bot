@@ -9,7 +9,7 @@ from src.config import settings
 from src.database.connector import async_session
 from src.services.llm_service import LLMService
 
-from .handlers import commands, doses, schedules
+from .handlers import commands, schedules
 from .middleware.database import DatabaseMiddleware
 from .middleware.user import UserMiddleware
 
@@ -39,15 +39,12 @@ def create_dispatcher():
 
     dp.include_router(commands.router)
     dp.include_router(schedules.router)
-    dp.include_router(doses.router)
 
     return dp
 
 
 async def set_bot_commands(bot: Bot):
-    await bot.set_my_commands(
-        commands=commands.commands + schedules.commands + doses.commands
-    )
+    await bot.set_my_commands(commands=commands.commands + schedules.commands)
 
 
 async def main():

@@ -1,0 +1,8 @@
+@botToken={{$dotenv BOT__TOKEN}}
+@baseUrl=https://api.telegram.org/bot{{botToken}}
+
+###
+GET {{baseUrl}}/getWebhookInfo
+
+###
+GET {{baseUrl}}/deleteWebhook

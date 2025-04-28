@@ -63,12 +63,17 @@ async def cancel(message: Message, state: FSMContext):
 
 
 async def send_confirmation(message: Message, state_data: dict):
+    duration = (
+        f"{state_data['duration']} days"
+        if state_data.get("duration")
+        else "not specified"
+    )
     text = (
         "📝 Please confirm your medication schedule:\n\n"
         f"   💊 Drug: {state_data['drug_name']}\n"
         f"   📏 Dose: {state_data['dose']}\n"
         f"   ⏰ Frequency: {state_data['doses_per_day']} times/day\n"
-        f"   📅 Duration: {f"{state_data['duration']} days" if state_data.get('duration') else 'not specified'}\n"
+        f"   📅 Duration: {duration}\n"
         f"   📝 Comment: {state_data.get('comment', 'None')}"
     )
 

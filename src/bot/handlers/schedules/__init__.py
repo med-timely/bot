@@ -1,5 +1,4 @@
-from .router import router, commands
-from . import create, list, callbacks  # Import to register command handlers
-
+from . import callbacks, create, list, taken  # Import to register command handlers
+from .router import commands, router
 
 __all__ = ["router", "commands"]
