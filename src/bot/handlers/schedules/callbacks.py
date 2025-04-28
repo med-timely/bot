@@ -1,4 +1,6 @@
+from contextlib import suppress
 from aiogram.types import CallbackQuery
+from aiogram.exceptions import TelegramBadRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import User
@@ -19,5 +21,8 @@ async def handle_dose_callback(
     service = ScheduleService(session)
 
     success, message = await service.log_dose(user.id, schedule_id)
+    # if success:
+    #     with suppress(TelegramBadRequest):
+    #         await callback.message.edit_reply_markup(reply_markup=None) # type: ignore
 
     await callback.answer(message, show_alert=not success)

@@ -30,8 +30,8 @@ def create_llm_service():
     )
 
 
-def create_dispatcher():
-    dp = Dispatcher(llm_service=create_llm_service())
+def create_dispatcher(**kwargs):
+    dp = Dispatcher(**kwargs)
 
     # Register middleware
     dp.update.middleware(DatabaseMiddleware(async_session))
@@ -49,12 +49,13 @@ async def set_bot_commands(bot: Bot):
 
 async def main():
     try:
-        bot = create_bot()
-        dp = create_dispatcher()
+        async with create_llm_service() as llm_service:
+            bot = create_bot()
+            dp = create_dispatcher(llm_service=llm_service)
 
-        await set_bot_commands(bot)
-        logging.info("Bot started. Press Ctrl+C to stop")
-        await dp.start_polling(bot)
+            await set_bot_commands(bot)
+            logging.info("Bot started. Press Ctrl+C to stop")
+            await dp.start_polling(bot)
     except Exception as e:
         logging.error(f"Error occurred: {e}")
         sys.exit(1)
