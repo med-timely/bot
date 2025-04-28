@@ -23,8 +23,9 @@ async def format_schedule(
 
     # Duration information
     if schedule.duration:
+        end_date = end_local.strftime("%Y-%m-%d") if end_local else "ongoing"
         text += f"   📅 Duration: {schedule.duration} days\n"
-        text += f"      {start_local.strftime('%Y-%m-%d')} → {end_local.strftime('%Y-%m-%d') if end_local else "ongoing"}\n"
+        text += f"      {start_local.strftime('%Y-%m-%d')} → {end_date}\n"
     else:
         text += f"   📅 Since {start_local.strftime('%Y-%m-%d')}\n"
 

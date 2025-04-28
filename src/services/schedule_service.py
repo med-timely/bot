@@ -2,11 +2,12 @@ from datetime import datetime, time, timedelta, timezone
 from typing import Optional
 
 import pytz
-from sqlalchemy import select
+from sqlalchemy import BooleanClauseList, exists, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.base import ExecutableOption
 
-from src.models import Schedule, User, Dose
+from src.models import Dose, Schedule, User
 
 
 class ScheduleService:
@@ -30,27 +31,62 @@ class ScheduleService:
         await self.session.refresh(schedule)
         return schedule
 
+    # region Schedule Read
     async def get_active_schedules(
-        self, user_id: int, *, with_doses: bool = False
+        self,
+        user_id: int,
+        *,
+        with_doses: bool = False,
+        only_today: bool = False,
+        not_taken: bool = False,
     ) -> list[Schedule]:
-        """Get all active schedules for a user"""
+        """Get active schedules with optimized filters"""
         now = datetime.now(timezone.utc)
-
-        options = []
-        if with_doses:
-            options.append(selectinload(Schedule.doses))
-
         stmt = (
             select(Schedule)
-            .options(*options)
+            .options(*self._get_loading_options(with_doses))
             .where(
                 Schedule.user_id == user_id,
-                (Schedule.end_datetime > now) | (Schedule.end_datetime.is_(None)),
+                self._get_active_filter(now, only_today, not_taken),
             )
             .order_by(Schedule.start_datetime)
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
+
+    def _get_loading_options(self, with_doses: bool) -> list[ExecutableOption]:
+        options = []
+        if with_doses:
+            options.append(selectinload(Schedule.doses))
+        return options
+
+    def _get_active_filter(
+        self, now: datetime, only_today: bool, not_taken: bool = False
+    ) -> BooleanClauseList:
+        base_filter = (Schedule.end_datetime > now) | (Schedule.end_datetime.is_(None))
+
+        if only_today:
+            today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+            today_end = today_start + timedelta(days=1)
+            base_filter = base_filter & (Schedule.start_datetime < today_end)
+
+        if not_taken:
+            base_filter = (
+                base_filter
+                & ~select(Dose.id)
+                .where(
+                    Dose.schedule_id == Schedule.id,
+                    Dose.taken_datetime
+                    > text(
+                        "NOW() - INTERVAL :period / schedules.doses_per_day HOUR"
+                    ).bindparams(period=(self.DAY_END.hour - self.DAY_START.hour) / 2),
+                )
+                .exists()
+            )
+
+        return base_filter
+
+    # endregion
 
     async def get_next_dose_time(
         self, user: User, schedule: Schedule
@@ -121,7 +157,6 @@ class ScheduleService:
         # Get the schedule and verify it belongs to the user
         stmt = (
             select(Schedule)
-            .options(selectinload(Schedule.doses))
             .where(Schedule.id == schedule_id, Schedule.user_id == user_id)
             .execution_options(populate_existing=True)
         )
@@ -141,10 +176,14 @@ class ScheduleService:
         window_start = datetime.now(timezone.utc) - timedelta(
             minutes=dose_interval * 60 / 2
         )
-        existing_dose = next(
-            (d for d in schedule.doses if d.taken_datetime >= window_start),
-            None,
-        )
+        existing_dose = (
+            await self.session.execute(
+                select(Dose).where(
+                    Dose.schedule_id == schedule_id,
+                    Dose.taken_datetime >= window_start,
+                )
+            )
+        ).scalar_one_or_none()
 
         if existing_dose:
             return False, "Dose already recorded"

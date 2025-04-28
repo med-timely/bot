@@ -28,7 +28,7 @@ async def handle_list(message: Message, session: AsyncSession, user: User):
         response.append(f"{idx}. {schedule_text.strip()}")
 
     await message.answer(
-        "\n".join(response),
+        "\n\n".join(response),
         parse_mode="HTML",
         reply_markup=get_list_keyboard(active_schedules),
     )
