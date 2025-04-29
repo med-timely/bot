@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-aiogram = "*"
 asyncmy = "*"
 alembic = "*"
 celery = {extras = ["redis"], version = "*"}
@@ -13,6 +12,7 @@ sqlalchemy = {extras = ["asyncio"], version = "*"}
 cachetools = "*"
 aiohttp = "*"
 pytz = "*"
+aiogram = {extras = ["redis"], version = "*"}
 
 [dev-packages]
 black = "*"
