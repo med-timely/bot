@@ -1,4 +1,4 @@
-from pydantic import AnyUrl, BaseModel, Field, SecretStr
+from pydantic import AnyUrl, BaseModel, Field, RedisDsn, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,6 +19,17 @@ class LLMSettings(BaseModel):
     api_key: SecretStr
 
 
+class RedisSettings(BaseModel):
+    url: RedisDsn = Field(
+        default=RedisDsn("redis://localhost:6379/1"),  # Different DB from Celery
+        description="Redis connection URL for FSM storage",
+    )
+    fsm_ttl: int = Field(
+        default=60 * 60 * 24 * 3,  # 3 days TTL for FSM data
+        description="FSM data time-to-live in seconds",
+    )
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -35,6 +46,9 @@ class Settings(BaseSettings):
 
     # LLM
     llm: LLMSettings
+
+    # Redis
+    redis: RedisSettings = Field(default_factory=RedisSettings)
 
 
 settings = Settings()  # type: ignore
