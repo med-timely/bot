@@ -6,7 +6,7 @@ from src.models import User
 from src.services.schedule_service import ScheduleService
 
 from .formatters import format_schedule
-from .keyboards import get_list_keyboard
+from .keyboards import get_taken_keyboard
 from .router import router
 
 
@@ -30,5 +30,5 @@ async def handle_list(message: Message, session: AsyncSession, user: User):
     await message.answer(
         "\n\n".join(response),
         parse_mode="HTML",
-        reply_markup=get_list_keyboard(active_schedules),
+        reply_markup=get_taken_keyboard(active_schedules),
     )

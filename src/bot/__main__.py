@@ -2,16 +2,14 @@ import logging
 import sys
 
 from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.storage.base import DefaultKeyBuilder
-
+from aiogram.fsm.storage.redis import RedisStorage
 
 from src.config import settings
 from src.database.connector import async_session
 from src.services.llm_service import LLMService
 
+from .bot import get_bot
 from .handlers import commands, schedules
 from .middleware.database import DatabaseMiddleware
 from .middleware.user import UserMiddleware
@@ -24,13 +22,6 @@ def create_redis_storage() -> RedisStorage:
         connection_kwargs={"decode_responses": False, "health_check_interval": 30},
         state_ttl=settings.redis.fsm_ttl,
         data_ttl=settings.redis.fsm_ttl,
-    )
-
-
-def create_bot():
-    return Bot(
-        token=settings.bot.token.get_secret_value(),
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
 
 
@@ -63,8 +54,7 @@ async def set_bot_commands(bot: Bot):
 
 async def main():
     try:
-        async with create_llm_service() as llm_service:
-            bot = create_bot()
+        async with create_llm_service() as llm_service, get_bot() as bot:
             dp = create_dispatcher(llm_service=llm_service)
 
             await set_bot_commands(bot)

@@ -4,18 +4,19 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-asyncmy = "*"
-alembic = "*"
-celery = {extras = ["redis"], version = "*"}
-pydantic-settings = "*"
-sqlalchemy = {extras = ["asyncio"], version = "*"}
-cachetools = "*"
-aiohttp = "*"
-pytz = "*"
 aiogram = {extras = ["redis"], version = "*"}
+aiohttp = "*"
+alembic = "*"
+cachetools = "*"
+celery = {extras = ["redis"], version = "*"}
+gevent = "*"
+pydantic-settings = "*"
+pytz = "*"
+sqlalchemy = {extras = ["asyncmy", "asyncio"], version = "*"}
 
 [dev-packages]
 black = "*"
+flower = "*"
 
 [requires]
 python_version = "3.11"

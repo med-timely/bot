@@ -62,6 +62,12 @@ class UserService:
 
         return user
 
+    async def select(self, ids: list[int]) -> list[User]:
+        stmt = select(User).where(User.id.in_(ids))
+        result = await self.session.execute(stmt)
+
+        return list(result.scalars().all())
+
     async def accept_privacy(self, user_id: int):
         await self.session.execute(
             update(User).where(User.id == user_id).values(privacy_accepted=True)
