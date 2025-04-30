@@ -40,6 +40,19 @@ migrate:  ## Create new migration
 upgrade:  ## Apply migrations
 	pipenv run alembic upgrade head
 
+# Celery
+.PHONY: celery-worker celery-beat celery
+
+celery-worker:  ## Start Celery worker
+	pipenv run celery -A src.tasks.celery worker --loglevel=info
+
+celery-beat:  ## Start Celery beat scheduler
+	pipenv run celery -A src.tasks.celery beat --loglevel=info
+
+celery:  ## Start both Celery worker and beat (background)
+	pipenv run celery -A src.tasks.celery worker --loglevel=info --detach
+	pipenv run celery -A src.tasks.celery beat --loglevel=info --detach
+
 # Maintenance
 .PHONY: clean
 clean:  ## Remove virtual environment and cached files
