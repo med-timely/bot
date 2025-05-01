@@ -13,6 +13,7 @@ gevent = "*"
 pydantic-settings = "*"
 pytz = "*"
 sqlalchemy = {extras = ["asyncmy", "asyncio"], version = "*"}
+timezonefinder = "*"
 
 [dev-packages]
 black = "*"
