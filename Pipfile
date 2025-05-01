@@ -17,6 +17,8 @@ sqlalchemy = {extras = ["asyncmy", "asyncio"], version = "*"}
 [dev-packages]
 black = "*"
 flower = "*"
+pytest = "*"
+pytest-asyncio = "*"
 
 [requires]
 python_version = "3.11"
