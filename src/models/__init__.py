@@ -95,6 +95,13 @@ class Schedule(Base, TimedModelMixin):
     def dose_interval_in_hours(self, daylight_hours: float) -> float:
         return daylight_hours / self.doses_per_day
 
+    def __repr__(self) -> str:
+        return (
+            f"Schedule(id={self.id!r}, user_id={self.user_id!r}, "
+            f"drug_name={self.drug_name!r}, dose={self.dose!r}, "
+            f"doses_per_day={self.doses_per_day!r}, duration={self.duration!r})"
+        )
+
 
 class Dose(Base):
     __tablename__ = "doses"
