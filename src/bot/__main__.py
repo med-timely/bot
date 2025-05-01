@@ -6,7 +6,7 @@ from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 
 from src.config import settings
-from src.database.connector import async_session
+from src.database.connector import get_sessionmaker
 from src.services.llm_service import LLMService
 
 from .bot import get_bot
@@ -39,7 +39,7 @@ def create_dispatcher(**kwargs):
     dp = Dispatcher(storage=redis_storage, **kwargs)
 
     # Register middleware
-    dp.update.middleware(DatabaseMiddleware(async_session))
+    dp.update.middleware(DatabaseMiddleware(get_sessionmaker()))
     dp.update.middleware(UserMiddleware())
 
     dp.include_router(commands.router)

@@ -17,7 +17,8 @@ async def test_handle_help():
         "/me - Show your profile information\n"
         "/schedule - Create medication schedule\n"
         "/list - Show active medications\n"
-        "/taken - Confirm dose taken"
+        "/taken - Confirm dose taken\n"
+        "/history - Show medication adherence history"
     )
 
 
