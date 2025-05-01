@@ -6,6 +6,7 @@ from . import (
     create,
     list,
     taken,
+    history,
 )
 
 
@@ -14,9 +15,12 @@ commands = [
     BotCommand(command="schedule", description="Create new medication schedule"),
     BotCommand(command="list", description="Show active medications"),
     BotCommand(command="taken", description="Confirm dose taken"),
+    BotCommand(command="history", description="Show medication adherence history"),
 ]
 
-router.include_routers(callbacks.router, create.router, list.router, taken.router)
+router.include_routers(
+    callbacks.router, create.router, list.router, taken.router, history.router
+)
 
 
 __all__ = ["router", "commands"]

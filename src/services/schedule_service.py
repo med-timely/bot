@@ -1,13 +1,16 @@
 from datetime import datetime, time, timedelta, timezone
+import logging
 from typing import Optional
 
 import pytz
-from sqlalchemy import BooleanClauseList, select, text
+from sqlalchemy import BooleanClauseList, asc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
 
 from src.models import Dose, Schedule, User
+
+logger = logging.getLogger(__name__)
 
 
 class ScheduleService:
@@ -17,6 +20,7 @@ class ScheduleService:
     def __init__(self, session: AsyncSession):
         self.session = session
 
+    # region Create
     async def create_schedule(self, user_id: int, **data) -> Schedule:
         self._validate_schedule_data(data)
 
@@ -30,6 +34,20 @@ class ScheduleService:
         await self.session.commit()
         await self.session.refresh(schedule)
         return schedule
+
+    def _validate_schedule_data(self, data):
+        required = ["drug_name", "dose", "doses_per_day"]
+        missing = [field for field in required if not data.get(field)]
+        if missing:
+            raise ValueError(f"Missing required fields: {', '.join(missing)}")
+
+        if data["doses_per_day"] < 1:
+            raise ValueError("Frequency must be positive number")
+
+        if "duration" in data and data["duration"] is not None and data["duration"] < 1:
+            raise ValueError("Duration must be a positive number or not specified")
+
+    # endregion
 
     # region Schedule Read
     async def get_active_schedules(
@@ -143,6 +161,7 @@ class ScheduleService:
 
     # endregion
 
+    # region Doses
     async def get_next_dose_time(
         self, user: User, schedule: Schedule
     ) -> Optional[datetime]:
@@ -308,14 +327,144 @@ class ScheduleService:
 
         return next_utc
 
-    def _validate_schedule_data(self, data):
-        required = ["drug_name", "dose", "doses_per_day"]
-        missing = [field for field in required if field not in data]
-        if missing:
-            raise ValueError(f"Missing required fields: {', '.join(missing)}")
+    # endregion
 
-        if data["doses_per_day"] < 1:
-            raise ValueError("Frequency must be positive number")
+    # region Reports
+    async def get_adherence_stats(self, user_id: int, days: int) -> dict:
+        """Calculate medication adherence statistics for given period"""
+        end_date = datetime.now(timezone.utc)
+        start_date = end_date - timedelta(days=days)
 
-        if "duration" in data and data["duration"] is not None and data["duration"] < 1:
-            raise ValueError("Duration must be a positive number or not specified")
+        # Get all schedules with doses in period
+        stmt = (
+            select(Schedule)
+            .options(selectinload(Schedule.user))
+            .where(
+                Schedule.user_id == user_id,
+                Schedule.start_datetime <= end_date,
+                (Schedule.end_datetime >= start_date) | Schedule.end_datetime.is_(None),
+            )
+        )
+        result = await self.session.execute(stmt)
+        schedules = result.scalars().all()
+
+        # Get relevant doses in a single query using IN clause
+        schedule_ids = [schedule.id for schedule in schedules]
+        dose_stmt = (
+            select(Dose)
+            .where(
+                Dose.schedule_id.in_(schedule_ids),
+                Dose.taken_datetime >= start_date,
+                Dose.taken_datetime <= end_date,
+                Dose.confirmed,
+            )
+            .order_by(asc(Dose.taken_datetime))
+        )
+        dose_result = await self.session.execute(dose_stmt)
+        all_doses = dose_result.scalars().all()
+
+        # Group doses by schedule_id for efficient lookup
+        doses_by_schedule = {}
+        for dose in all_doses:
+            if dose.schedule_id not in doses_by_schedule:
+                doses_by_schedule[dose.schedule_id] = []
+            doses_by_schedule[dose.schedule_id].append(dose)
+
+        stats = {}
+
+        for schedule in schedules:
+            logger.debug("Process schedule %s", str(schedule))
+
+            tz = pytz.timezone(schedule.user.timezone)
+            expected_doses = self._calculate_expected_doses(
+                schedule, start_date, end_date, tz
+            )
+
+            actual_doses = doses_by_schedule.get(schedule.id, [])
+            logger.debug("Actual doses: %s", str(actual_doses))
+
+            on_time, late = self._categorize_doses(expected_doses, actual_doses, tz)
+            taken = len(on_time) + len(late)
+            missed = max(0, len(expected_doses) - taken)
+
+            stats[schedule.drug_name] = {
+                "dose": schedule.dose,
+                "total": len(expected_doses),
+                "taken": taken,
+                "on_time": len(on_time),
+                "late": len(late),
+                "missed": missed,
+                "percentage": (
+                    round((taken / len(expected_doses)) * 100) if expected_doses else 0
+                ),
+            }
+
+        return stats
+
+    def _calculate_expected_doses(
+        self, schedule: Schedule, start: datetime, end: datetime, tz: pytz.BaseTzInfo
+    ) -> list[datetime]:
+        """Generate expected dose times in user's timezone"""
+
+        # Convert to user's local dates
+        local_start = start.astimezone(tz).date()
+        local_end = end.astimezone(tz).date()
+        days = (local_end - local_start).days + 1
+
+        daylight_hours = self.DAY_END.hour - self.DAY_START.hour
+        interval_sec = daylight_hours * 3600 / schedule.doses_per_day
+
+        expected: list[datetime] = []
+        for day in range(days):
+            base_date = local_start + timedelta(days=day)
+            for i in range(schedule.doses_per_day):
+                local_dt = datetime.combine(
+                    base_date,
+                    self.DAY_START,
+                ) + timedelta(seconds=interval_sec * i)
+                expected.append(tz.localize(local_dt))
+
+        return [t for t in expected if start <= t <= end]
+
+    def _categorize_doses(
+        self,
+        expected: list[datetime],
+        actual: list[Dose],
+        tz: pytz.BaseTzInfo,
+    ):
+        """Categorize doses as on-time or late"""
+        on_time = []
+        late = []
+        tolerance = timedelta(minutes=30)
+
+        if not expected:
+            return on_time, late
+        if not actual:
+            return on_time, late
+
+        idx = 0
+        for dose in actual:
+            dose_time = dose.taken_datetime.astimezone(tz)
+            while True:
+                if idx >= len(expected):
+                    late.append(dose)
+                    break
+
+                expected_time = expected[idx]
+                if (
+                    abs((dose_time - expected_time).total_seconds())
+                    <= tolerance.total_seconds()
+                ):
+                    on_time.append(dose)
+                    break
+                if expected_time > dose_time:
+                    late.append(dose)
+                    break
+
+                idx += 1
+
+        assert len(actual) == len(late) + len(on_time)
+
+        return on_time, late
+
+    # endregion
