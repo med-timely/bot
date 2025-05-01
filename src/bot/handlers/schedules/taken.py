@@ -1,3 +1,4 @@
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -6,7 +7,7 @@ from src.bot.handlers.schedules.keyboards import get_taken_keyboard
 from src.models import User
 from src.services.schedule_service import ScheduleService
 
-from .router import router
+router = Router()
 
 
 @router.message(Command("taken"))

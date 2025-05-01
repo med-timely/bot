@@ -1,3 +1,5 @@
+from contextlib import suppress
+from aiogram import Router
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,7 +7,9 @@ from src.models import User
 from src.services.schedule_service import ScheduleService
 
 from .callbacks_data import DoseCallback
-from .router import router
+
+
+router = Router()
 
 
 @router.callback_query(DoseCallback.filter())

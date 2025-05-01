@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 import pytz
-from aiogram import F
+from aiogram import F, Router
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -14,7 +14,7 @@ from src.services.llm_service import LLMService
 from src.services.schedule_service import ScheduleService
 from src.utils.parsers import parse_prescription
 
-from .router import router
+router = Router()
 
 
 class ScheduleStates(StatesGroup):
