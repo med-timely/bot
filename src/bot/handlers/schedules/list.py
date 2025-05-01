@@ -1,3 +1,4 @@
+from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +8,8 @@ from src.services.schedule_service import ScheduleService
 
 from .formatters import format_schedule
 from .keyboards import get_taken_keyboard
-from .router import router
+
+router = Router()
 
 
 @router.message(Command("list"))
