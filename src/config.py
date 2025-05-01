@@ -36,6 +36,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         env_nested_delimiter="__",
         nested_model_default_partial_update=True,
+        extra="ignore",
     )
 
     # Telegram
