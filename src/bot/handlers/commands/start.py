@@ -59,7 +59,7 @@ async def handle_start(message: Message, state: FSMContext, user: User):
     await message.answer(
         "👋 Welcome to MedGuard!\n\n"
         "Before we start, please:\n"
-        "1. Read our [Privacy Policy](https://example.com/privacy)\n"
+        "1. Read our [Privacy Policy](https://tnfy.link/5nBW)\n"
         "2. Confirm you agree with data processing",
         reply_markup=get_privacy_keyboard(),
         parse_mode="Markdown",
