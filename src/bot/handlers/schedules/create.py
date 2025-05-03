@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 
 import pytz
 from aiogram import F, Router
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command, CommandObject, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
@@ -51,6 +51,21 @@ def is_skip(message: Message) -> bool:
     return message.text.lower() in ["skip", "➡️ skip"]
 
 
+async def process_prescription_line(
+    message: Message, line: str | None, state: FSMContext, llm_service: LLMService
+):
+    if not line:
+        return None
+
+    parsed = await parse_prescription(llm_service, line)
+    if not parsed:
+        return None
+
+    await state.update_data(**parsed.model_dump())
+    await send_confirmation(message, parsed.model_dump())
+    await state.set_state(ScheduleStates.waiting_confirmation)
+
+
 @router.message(
     StateFilter(ScheduleStates),
     F.text == "❌ Cancel",
@@ -84,12 +99,27 @@ async def send_confirmation(message: Message, state_data: dict):
 
 
 @router.message(Command("schedule"))
-async def start_schedule(message: Message, state: FSMContext, user: User):
+async def start_schedule(
+    message: Message,
+    state: FSMContext,
+    user: User,
+    llm_service: LLMService,
+    command: CommandObject,
+):
     if not user.privacy_accepted:
         await message.answer(
-            "👋 Welcome to MedGuard!\n\n" "Before we start, please register: /start",
+            "👋 Welcome to MedTimely!\n\n" "Before we start, please register: /start",
         )
         return
+
+    args = command.args
+    parsed = await process_prescription_line(message, args, state, llm_service)
+    if parsed:
+        return
+    if args:
+        message.answer(
+            "I couldn't parse that as a prescription. Let's continue step by step."
+        )
 
     await message.answer(
         "💊 Let's create a new medication schedule.\n\n"
@@ -111,16 +141,15 @@ async def process_drug_name(
 
     # Try to parse natural language input
     if len(message.text.split()) > 3:
-        parsed = await parse_prescription(llm_service, message.text)
+        parsed = await process_prescription_line(
+            message, message.text, state, llm_service
+        )
         if parsed:
-            await state.update_data(**parsed.model_dump())
-            await send_confirmation(message, parsed.model_dump())
-            await state.set_state(ScheduleStates.waiting_confirmation)
             return
-        else:
-            await message.answer(
-                "I couldn't parse that as a prescription. Let's continue step by step."
-            )
+
+        await message.answer(
+            "I couldn't parse that as a prescription. Let's continue step by step."
+        )
 
     await state.update_data(drug_name=message.text)
     await message.answer(
