@@ -59,11 +59,13 @@ async def process_prescription_line(
 
     parsed = await parse_prescription(llm_service, line)
     if not parsed:
-        return None
+        return False
 
     await state.update_data(**parsed.model_dump())
     await send_confirmation(message, parsed.model_dump())
     await state.set_state(ScheduleStates.waiting_confirmation)
+
+    return True
 
 
 @router.message(
