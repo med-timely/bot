@@ -28,11 +28,11 @@ class ScheduleService:
         if "start_datetime" not in fields:
             fields["start_datetime"] = datetime.now(timezone.utc)
 
-        schedule = Schedule(user_id=user_id, **fields)
+        schedule = Schedule(user_id=user_id, doses=[], **fields)
 
         self.session.add(schedule)
         await self.session.commit()
-        await self.session.refresh(schedule)
+
         return schedule
 
     def _validate_schedule_data(self, data):
