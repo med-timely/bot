@@ -38,6 +38,9 @@ async def handle_history(
     if days <= 0:
         await message.answer("Please specify a positive number of days")
         return
+    if days > 365:
+        await message.answer("Maximum history period is 1 year (365 days)")
+        return
 
     service = ScheduleService(session)
     stats = await service.get_adherence_stats(user.id, days)
