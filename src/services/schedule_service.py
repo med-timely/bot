@@ -17,6 +17,10 @@ class ScheduleService:
     DAY_START = time(8, 0)  # 8:00 AM local time
     DAY_END = time(20, 0)  # 8:00 PM local time
 
+    @property
+    def daylight_duration_hours(self):
+        return self.DAY_END.hour - self.DAY_START.hour
+
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -152,7 +156,7 @@ class ScheduleService:
                     Dose.taken_datetime
                     > text(
                         "UTC_TIMESTAMP() - INTERVAL :period / schedules.doses_per_day HOUR"
-                    ).bindparams(period=(self.DAY_END.hour - self.DAY_START.hour) / 2),
+                    ).bindparams(period=self.daylight_duration_hours / 2),
                 )
                 .exists()
             )
@@ -207,9 +211,7 @@ class ScheduleService:
                 return None
 
         # Calculate next dose time (distributed evenly across day)
-        dose_interval = schedule.dose_interval_in_hours(
-            self.DAY_END.hour - self.DAY_START.hour
-        )
+        dose_interval = schedule.dose_interval_in_hours(self.daylight_duration_hours)
         last_dose_local = user.in_local_time(doses[-1].taken_datetime)
         next_local = last_dose_local + timedelta(hours=dose_interval)
 
@@ -224,9 +226,7 @@ class ScheduleService:
         ).astimezone(timezone.utc)
 
     async def get_current_dose(self, schedule: Schedule) -> Dose:
-        dose_interval = schedule.dose_interval_in_hours(
-            self.DAY_END.hour - self.DAY_START.hour
-        )
+        dose_interval = schedule.dose_interval_in_hours(self.daylight_duration_hours)
         window_start = datetime.now(timezone.utc) - timedelta(
             minutes=dose_interval * 60 / 2
         )
@@ -418,8 +418,9 @@ class ScheduleService:
         local_end = end.astimezone(tz).date()
         days = (local_end - local_start).days + 1
 
-        daylight_hours = self.DAY_END.hour - self.DAY_START.hour
-        interval_sec = daylight_hours * 3600 / schedule.doses_per_day
+        interval_sec = (
+            schedule.dose_interval_in_hours(self.daylight_duration_hours) * 3600
+        )
 
         expected: list[datetime] = []
         for day in range(days):
