@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 
-import pytz
 from aiogram import F, Router
 from aiogram.filters import Command, CommandObject, StateFilter
 from aiogram.fsm.context import FSMContext

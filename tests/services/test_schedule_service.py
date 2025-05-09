@@ -1,8 +1,8 @@
 import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 from src.services.schedule_service import ScheduleService
-from src.models import User, Schedule, Dose
+from src.models import User, Schedule
 import pytz
 
 
