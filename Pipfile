@@ -18,6 +18,9 @@ timezonefinder = "*"
 [dev-packages]
 black = "*"
 flower = "*"
+pytest = "*"
+pytest-asyncio = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.11"
