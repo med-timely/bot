@@ -252,7 +252,7 @@ async def handle_confirmation(
         next_dose_time = await service.get_next_dose_time(user, schedule)
         await message.answer(
             "✅ Schedule created successfully!\n"
-            f"Next dose: {next_dose_time.astimezone(pytz.timezone(user.timezone)).strftime('%d %b at %H:%M') if next_dose_time else 'No doses scheduled (schedule may be complete)'}\n"
+            f"Next dose: {user.in_local_time(next_dose_time).strftime('%d %b at %H:%M') if next_dose_time else 'No doses scheduled (schedule may be complete)'}\n"
             f"You'll receive reminders when it's time to take your medication.",
             reply_markup=ReplyKeyboardRemove(),
         )

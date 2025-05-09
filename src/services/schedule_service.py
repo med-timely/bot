@@ -178,7 +178,7 @@ class ScheduleService:
         """
 
         # Convert current time to user's timezone
-        now_utc = datetime.now(pytz.utc)
+        now_utc = datetime.now(timezone.utc)
         now_local = user.in_local_time(now_utc)
 
         # Check if schedule has ended (in user's local time)
@@ -196,7 +196,9 @@ class ScheduleService:
         if not doses:
             # First dose in a day
             start_local = now_local
-            return self._validate_next_local(start_local, user.tz)
+            return self._validate_next_local(start_local, user.tz).astimezone(
+                timezone.utc
+            )
 
         # Check if all doses have been taken
         if schedule.duration:
@@ -215,9 +217,11 @@ class ScheduleService:
         next_local = self._validate_next_local(next_local, user.tz)
 
         # Check if this dose was already taken (within 1 hour window)
-        next_utc = next_local.astimezone(pytz.utc)
+        next_utc = next_local.astimezone(timezone.utc)
 
-        return self._find_next_available_dose_time(user, doses, next_utc, dose_interval)
+        return self._find_next_available_dose_time(
+            user, doses, next_utc, dose_interval
+        ).astimezone(timezone.utc)
 
     async def get_current_dose(self, schedule: Schedule) -> Dose:
         dose_interval = schedule.dose_interval_in_hours(
@@ -323,7 +327,7 @@ class ScheduleService:
             # Dose already taken - skip to next interval
             next_local += timedelta(hours=dose_interval)
             next_local = self._validate_next_local(next_local, user.tz)
-            next_utc = next_local.astimezone(pytz.utc)
+            next_utc = next_local.astimezone(timezone.utc)
 
         return next_utc
 
@@ -405,9 +409,12 @@ class ScheduleService:
         self, schedule: Schedule, start: datetime, end: datetime, tz: pytz.BaseTzInfo
     ) -> list[datetime]:
         """Generate expected dose times in user's timezone"""
+        # Don't calculate doses before schedule start
+        schedule_start = schedule.start_datetime
+        effective_start = max(start, schedule_start)
 
         # Convert to user's local dates
-        local_start = start.astimezone(tz).date()
+        local_start = effective_start.astimezone(tz).date()
         local_end = end.astimezone(tz).date()
         days = (local_end - local_start).days + 1
 
@@ -424,7 +431,7 @@ class ScheduleService:
                 ) + timedelta(seconds=interval_sec * i)
                 expected.append(tz.localize(local_dt))
 
-        return [t for t in expected if start <= t <= end]
+        return [t for t in expected if effective_start <= t <= end]
 
     def _categorize_doses(
         self,
