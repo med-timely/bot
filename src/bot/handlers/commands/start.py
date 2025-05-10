@@ -10,13 +10,13 @@ from aiogram.types import ContentType, KeyboardButton, Message, ReplyKeyboardRem
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from timezonefinder import TimezoneFinder
 
-timezone_finder_singleton = TimezoneFinder()
-
 from src.models import User
 from src.services.user_service import UserService
 
 from .router import router
 from .utils import calculate_timezone_from_time
+
+timezone_finder_singleton = TimezoneFinder()
 
 
 class StartStates(StatesGroup):
