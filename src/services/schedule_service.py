@@ -298,6 +298,9 @@ class ScheduleService:
         if self.DAY_START <= next_local.time() <= self.DAY_END:
             return next_local
 
+        if next_local.time() < self.DAY_START:
+            return tz.localize(datetime.combine(next_local.date(), self.DAY_START))
+
         next_day = next_local.date() + timedelta(days=1)
         next_local = tz.localize(datetime.combine(next_day, self.DAY_START))
 
