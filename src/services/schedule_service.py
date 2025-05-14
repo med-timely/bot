@@ -156,7 +156,7 @@ class ScheduleService:
                     Dose.taken_datetime
                     > text(
                         "UTC_TIMESTAMP() - INTERVAL :period / schedules.doses_per_day HOUR"
-                    ).bindparams(period=self.daylight_duration_hours / 2),
+                    ).bindparams(period=self.daylight_duration_hours),
                 )
                 .exists()
             )
@@ -213,7 +213,7 @@ class ScheduleService:
         # Calculate next dose time (distributed evenly across day)
         dose_interval = schedule.dose_interval_in_hours(self.daylight_duration_hours)
         last_dose_local = user.in_local_time(doses[-1].taken_datetime)
-        next_local = last_dose_local + timedelta(hours=dose_interval)
+        next_local = max(now_local, last_dose_local + timedelta(hours=dose_interval))
 
         # If next time would be at night, move to next morning
         next_local = self._validate_next_local(next_local, user.tz)
