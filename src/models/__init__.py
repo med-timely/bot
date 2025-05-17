@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import cached_property
 
 import pytz
-from sqlalchemy import CheckConstraint, Computed, Enum, ForeignKey, String
+from sqlalchemy import CheckConstraint, Enum, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.connector import Base
@@ -82,9 +82,8 @@ class Schedule(Base, TimedModelMixin):
     start_datetime: Mapped[datetime] = mapped_column(
         UTCDateTime(timezone=True)
     )  # Actual start time after delay
-    end_datetime: Mapped[datetime] = mapped_column(
+    end_datetime: Mapped[datetime | None] = mapped_column(
         UTCDateTime(timezone=True),
-        Computed("start_datetime + INTERVAL duration DAY"),
         nullable=True,
     )
 
