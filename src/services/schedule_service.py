@@ -33,6 +33,10 @@ class ScheduleService:
             fields["start_datetime"] = datetime.now(timezone.utc)
 
         schedule = Schedule(user_id=user_id, doses=[], **fields)
+        if "end_datetime" not in fields and fields.get("duration"):
+            schedule.end_datetime = fields["start_datetime"] + timedelta(
+                days=fields["duration"]
+            )
 
         self.session.add(schedule)
         await self.session.commit()
@@ -53,7 +57,7 @@ class ScheduleService:
 
     # endregion
 
-    # region Schedule Read
+    # region Read
     async def get_active_schedules(
         self,
         user_id: int | None,
@@ -162,6 +166,25 @@ class ScheduleService:
             )
 
         return base_filter
+
+    # endregion
+
+    # region Update
+    async def stop_schedule(self, user_id: int, schedule_id: int) -> Schedule:
+        """Stops a schedule by setting its end_datetime to now."""
+        schedule = await self.get_schedule(user_id, schedule_id)
+        if not schedule:
+            raise ValueError(
+                f"Schedule with id {schedule_id} not found or doesn't belong to user {user_id}"
+            )
+
+        if schedule.end_datetime and datetime.now(timezone.utc) > schedule.end_datetime:
+            raise ValueError(f"Schedule with id {schedule_id} is already stopped.")
+
+        schedule.end_datetime = datetime.now(timezone.utc)
+        await self.session.commit()
+
+        return schedule
 
     # endregion
 
