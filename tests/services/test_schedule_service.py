@@ -1,9 +1,11 @@
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
-from src.services.schedule_service import ScheduleService
-from src.models import User, Schedule
+
+import pytest
 import pytz
+
+from src.models import Schedule, User
+from src.services.schedule_service import ScheduleService
 
 
 @pytest.fixture
@@ -126,3 +128,35 @@ async def test_dose_intervals(
             time_str += "+1d"
 
         assert time_str == expected_local_time
+
+
+@pytest.mark.asyncio
+async def test_get_next_dose_time_before_schedule_start(service, user):
+    # now is before schedule.start_datetime → first dose at 08:00 local on start date
+    future = datetime(2024, 1, 2, tzinfo=timezone.utc)
+    sched = Schedule(
+        id=2, user_id=user.id, doses_per_day=2, start_datetime=future, doses=[]
+    )
+    with patch("src.services.schedule_service.datetime", wraps=datetime) as mock_dt:
+        mock_dt.now.return_value = datetime(2024, 1, 1, 7, tzinfo=timezone.utc)
+        nxt = await service.get_next_dose_time(user, sched)
+    local = nxt.astimezone(pytz.timezone(user.timezone))
+    assert local.date() == future.date()
+    assert local.hour == 8
+
+
+@pytest.mark.asyncio
+async def test_get_next_dose_time_handles_unknown_timezone(service, schedule):
+    # invalid timezone string → pytz.UnknownTimeZoneError
+    bad_user = User(id=99, timezone="Invalid/Zone")
+    with patch("src.services.schedule_service.datetime", wraps=datetime) as mock_dt:
+        mock_dt.now.return_value = datetime(2024, 1, 1, 7, tzinfo=timezone.utc)
+        with pytest.raises(pytz.UnknownTimeZoneError):
+            await service.get_next_dose_time(bad_user, schedule)
+
+
+@pytest.mark.asyncio
+async def test_create_schedule_error(service, schedule):
+    service.session.commit.side_effect = Exception("Create failed")
+    with pytest.raises(Exception):
+        await service.create_schedule(schedule)
