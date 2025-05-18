@@ -222,7 +222,7 @@ class ScheduleService:
 
         if not doses:
             # First dose in a day
-            start_local = now_local
+            start_local = max(now_local, user.in_local_time(schedule.start_datetime))
             return self._validate_next_local(start_local, user.tz).astimezone(
                 timezone.utc
             )

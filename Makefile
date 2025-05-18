@@ -65,6 +65,10 @@ clean-migrations:  ## Remove all migrations
 	rm -rf src/database/migrations/versions/*
 
 # Testing
+.PHONY: lint
+lint:  ## Run linter
+	pipenv run flake8 src tests
+
 .PHONY: test
 test:  ## Run tests with coverage
 	pipenv run pytest tests/ -v --cov=src --cov-report=term-missing
