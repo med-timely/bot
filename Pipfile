@@ -4,7 +4,6 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-aiogram = {extras = ["redis"], version = "*"}
 aiohttp = "*"
 alembic = "*"
 cachetools = "*"
@@ -14,6 +13,7 @@ pydantic-settings = "*"
 pytz = "*"
 sqlalchemy = {extras = ["asyncmy", "asyncio"], version = "*"}
 timezonefinder = "*"
+aiogram = {extras = ["i18n", "redis"], version = "*"}
 
 [dev-packages]
 black = "*"
@@ -24,9 +24,16 @@ pytest-cov = "*"
 flake8 = "*"
 
 [requires]
-python_version = "3.11"
+python_version = "3.12"
 
 [scripts]
 start = "python -m src.bot"
 migrate = "alembic revision --autogenerate -m 'auto-generated migration'"
 upgrade = "alembic upgrade head"
+
+i18n-extract = "pybabel extract -k _:1,1t -k _:1,2 -k __ --input-dirs=./src -o locales/messages.pot"
+i18n-update = "pybabel update -i locales/messages.pot -d locales"
+i18n-compile = "pybabel compile -d locales"
+
+[pipenv]
+sort_pipfile = true

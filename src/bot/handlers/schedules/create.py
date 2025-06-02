@@ -5,13 +5,18 @@ from aiogram.filters import Command, CommandObject, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.utils.i18n import gettext as _
+from aiogram.utils.i18n import lazy_gettext as __
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import User
 from src.services.llm_service import LLMService
 from src.services.schedule_service import ScheduleService
+from src.utils.formatting import format_datetime
 from src.utils.parsers import parse_prescription
+
+from .formatters import SPACING
 
 router = Router()
 
@@ -27,27 +32,27 @@ class ScheduleStates(StatesGroup):
 
 def get_cancel_keyboard():
     builder = ReplyKeyboardBuilder()
-    builder.button(text="❌ Cancel")
+    builder.button(text=_("❌ Cancel"))
     return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
 
 
 def get_skip_keyboard():
     builder = ReplyKeyboardBuilder()
-    builder.button(text="➡️ Skip")
+    builder.button(text=_("➡️ Skip"))
     return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
 
 
 def get_skip_or_cancel_keyboard():
     builder = ReplyKeyboardBuilder()
-    builder.button(text="➡️ Skip")
-    builder.button(text="❌ Cancel")
+    builder.button(text=_("➡️ Skip"))
+    builder.button(text=_("❌ Cancel"))
     return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
 
 
 def is_skip(message: Message) -> bool:
     if not message.text:
         return False
-    return message.text.lower() in ["skip", "➡️ skip"]
+    return message.text.lower() in [_("skip"), _("➡️ skip")]
 
 
 async def process_prescription_line(
@@ -69,33 +74,44 @@ async def process_prescription_line(
 
 @router.message(
     StateFilter(ScheduleStates),
-    F.text == "❌ Cancel",
+    F.text == __("❌ Cancel"),
 )
 async def cancel(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(
-        "Schedule creation canceled.", reply_markup=ReplyKeyboardRemove()
+        _("Schedule creation canceled."), reply_markup=ReplyKeyboardRemove()
     )
 
 
 async def send_confirmation(message: Message, state_data: dict):
     duration = (
-        f"{state_data['duration']} days"
+        _("{duration} day", "{duration} days", int(state_data["duration"])).format(
+            duration=int(state_data["duration"])
+        )
         if state_data.get("duration")
-        else "not specified"
+        else _("not specified")
     )
-    text = (
-        "📝 Please confirm your medication schedule:\n\n"
-        f"   💊 Drug: {state_data['drug_name']}\n"
-        f"   📏 Dose: {state_data['dose']}\n"
-        f"   ⏰ Frequency: {state_data['doses_per_day']} times/day\n"
-        f"   📅 Duration: {duration}\n"
-        f"   📝 Comment: {state_data.get('comment', 'None')}"
+    frequency = _(
+        "{frequency} time/day", "{frequency} times/day", state_data["doses_per_day"]
+    ).format(frequency=state_data["doses_per_day"])
+
+    text = _("📝 Please confirm your medication schedule:") + "\n\n"
+
+    text += (
+        SPACING
+        + _("💊 Drug: {drug_name}").format(drug_name=state_data["drug_name"])
+        + "\n"
+    )
+    text += SPACING + _("📏 Dose: {dose}").format(dose=state_data["dose"]) + "\n"
+    text += SPACING + _("⏰ Frequency: {frequency}").format(frequency=frequency) + "\n"
+    text += SPACING + _("📅 Duration: {duration}").format(duration=duration) + "\n"
+    text += SPACING + _("📝 Note: {comment}").format(
+        comment=state_data.get("comment") or _("None")
     )
 
     builder = ReplyKeyboardBuilder()
-    builder.button(text="✅ Confirm")
-    builder.button(text="❌ Cancel")
+    builder.button(text=_("✅ Confirm"))
+    builder.button(text=_("❌ Cancel"))
     await message.answer(text, reply_markup=builder.as_markup(resize_keyboard=True))
 
 
@@ -109,7 +125,7 @@ async def start_schedule(
 ):
     if not user.privacy_accepted:
         await message.answer(
-            "👋 Welcome to MedTimely!\n\n" "Before we start, please register: /start",
+            _("👋 Welcome to MedTimely!\n\nBefore we start, please register: /start"),
         )
         return
 
@@ -118,15 +134,17 @@ async def start_schedule(
     if parsed:
         return
     if args:
-        message.answer(
-            "I couldn't parse that as a prescription. Let's continue step by step."
+        await message.answer(
+            _("I couldn't parse that as a prescription. Let's continue step by step.")
         )
 
     await message.answer(
-        "💊 Let's create a new medication schedule.\n\n"
-        "You can either:\n"
-        "1. Enter details step by step, starting with the drug name\n"
-        "2. Paste a prescription line (e.g. 'Take Aspirin 1 tablet 3 times daily for 7 days')",
+        _(
+            "💊 Let's create a new medication schedule.\n\n"
+            "You can either:\n"
+            "1. Enter details step by step, starting with the drug name\n"
+            "2. Paste a prescription line (e.g. 'Take Aspirin 1 tablet 3 times daily for 7 days')"
+        ),
         reply_markup=get_cancel_keyboard(),
     )
     await state.set_state(ScheduleStates.waiting_drug_name)
@@ -137,7 +155,7 @@ async def process_drug_name(
     message: Message, state: FSMContext, llm_service: LLMService
 ):
     if not message.text:
-        await message.answer("Please enter a valid drug name:")
+        await message.answer(_("Please enter a valid drug name:"))
         return
 
     # Try to parse natural language input
@@ -149,12 +167,12 @@ async def process_drug_name(
             return
 
         await message.answer(
-            "I couldn't parse that as a prescription. Let's continue step by step."
+            _("I couldn't parse that as a prescription. Let's continue step by step.")
         )
 
     await state.update_data(drug_name=message.text)
     await message.answer(
-        "📏 Enter dosage (e.g. '1 tablet', '500mg'):",
+        _("📏 Enter dosage (e.g. '1 tablet', '500mg'):"),
         reply_markup=get_cancel_keyboard(),
     )
     await state.set_state(ScheduleStates.waiting_dose)
@@ -164,7 +182,7 @@ async def process_drug_name(
 async def process_dose(message: Message, state: FSMContext):
     await state.update_data(dose=message.text)
     await message.answer(
-        "⏰ How many times per day? (Enter number):",
+        _("⏰ How many times per day? (Enter number):"),
         reply_markup=get_cancel_keyboard(),
     )
     await state.set_state(ScheduleStates.waiting_frequency)
@@ -173,7 +191,7 @@ async def process_dose(message: Message, state: FSMContext):
 @router.message(ScheduleStates.waiting_frequency, F.text)
 async def process_frequency(message: Message, state: FSMContext):
     if not message.text:
-        await message.answer("Please enter a valid frequency:")
+        await message.answer(_("Please enter a valid frequency:"))
         return
 
     try:
@@ -182,18 +200,18 @@ async def process_frequency(message: Message, state: FSMContext):
             raise ValueError
         await state.update_data(doses_per_day=frequency)
         await message.answer(
-            "📅 Duration in days? (Enter number):",
+            _("📅 Duration in days? (Enter number):"),
             reply_markup=get_skip_or_cancel_keyboard(),
         )
         await state.set_state(ScheduleStates.waiting_duration)
     except ValueError:
-        await message.answer("Please enter a valid positive number:")
+        await message.answer(_("Please enter a valid positive number:"))
 
 
 @router.message(ScheduleStates.waiting_duration, F.text)
 async def process_duration(message: Message, state: FSMContext):
     if not message.text:
-        await message.answer("Please enter a valid duration:")
+        await message.answer(_("Please enter a valid duration:"))
         return
 
     if is_skip(message):
@@ -207,11 +225,11 @@ async def process_duration(message: Message, state: FSMContext):
             await state.update_data(duration=duration)
 
         except ValueError:
-            await message.answer("Please enter a valid positive number:")
+            await message.answer(_("Please enter a valid positive number:"))
             return
 
     await message.answer(
-        "📝 Any comments? (Optional, type 'skip' to omit):",
+        _("📝 Any comments? (Optional, type 'skip' to omit):"),
         reply_markup=get_skip_keyboard(),
     )
     await state.set_state(ScheduleStates.waiting_comment)
@@ -220,7 +238,7 @@ async def process_duration(message: Message, state: FSMContext):
 @router.message(ScheduleStates.waiting_comment, F.text)
 async def process_comment(message: Message, state: FSMContext):
     if not message.text:
-        await message.answer("Please enter a valid comment:")
+        await message.answer(_("Please enter a valid comment:"))
         return
 
     if not is_skip(message):
@@ -229,7 +247,7 @@ async def process_comment(message: Message, state: FSMContext):
     await state.set_state(ScheduleStates.waiting_confirmation)
 
 
-@router.message(ScheduleStates.waiting_confirmation, F.text == "✅ Confirm")
+@router.message(ScheduleStates.waiting_confirmation, F.text == __("✅ Confirm"))
 async def handle_confirmation(
     message: Message, state: FSMContext, session: AsyncSession, user: User
 ):
@@ -244,18 +262,24 @@ async def handle_confirmation(
             doses_per_day=state_data["doses_per_day"],
             duration=state_data["duration"],
             comment=state_data.get("comment"),
-            start_datetime=datetime.now(
-                timezone.utc
-            ),  # Or allow user to specify start time
+            start_datetime=datetime.now(timezone.utc),
         )
         next_dose_time = await service.get_next_dose_time(user, schedule)
         await message.answer(
-            "✅ Schedule created successfully!\n"
-            f"Next dose: {user.in_local_time(next_dose_time).strftime('%d %b at %H:%M') if next_dose_time else 'No doses scheduled (schedule may be complete)'}\n"
-            f"You'll receive reminders when it's time to take your medication.",
+            _(
+                "✅ Schedule created successfully!\n"
+                "Next dose: {next_dose}\n"
+                "You'll receive reminders when it's time to take your medication."
+            ).format(
+                next_dose=(
+                    format_datetime(user.in_local_time(next_dose_time))
+                    if next_dose_time
+                    else _("No doses scheduled (schedule may be complete)")
+                )
+            ),
             reply_markup=ReplyKeyboardRemove(),
         )
     except ValueError as e:
-        await message.answer(f"Error creating schedule: {str(e)}")
+        await message.answer(_("Error creating schedule: {error}").format(error=str(e)))
 
     await state.clear()

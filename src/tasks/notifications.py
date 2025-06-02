@@ -3,12 +3,14 @@ import functools
 import logging
 from datetime import datetime, timezone
 
+from aiogram.utils.i18n import gettext as _
 from celery import shared_task
 
-from src.models import Schedule
 from src.bot import get_bot
 from src.bot.handlers.schedules.keyboards import get_taken_keyboard
 from src.database.connector import get_db
+from src.i18n import use_locale
+from src.models import Schedule
 from src.services import ScheduleService
 
 logger = logging.getLogger(__name__)
@@ -71,17 +73,26 @@ async def send_notification(user_id: int, schedule_ids: list[int]):
             return
 
         user = new_doses[0][0].user
-        message = "⏰ Reminder: Time to take your medications:\n"
-        for schedule, _ in new_doses:
-            message += f"    - {schedule.drug_name}: {schedule.dose}\n"
 
-        await bot.send_message(
-            chat_id=user.telegram_id,
-            text=message,
-            reply_markup=get_taken_keyboard(schedules),
-        )
+        with use_locale(user.language_code):
+            header = _("⏰ Reminder: Time to take your medications:") + "\n"
+            message = header
+            for schedule, _unused in new_doses:
+                message += (
+                    "    "
+                    + _("- {drug}: {dose}").format(
+                        drug=schedule.drug_name, dose=schedule.dose
+                    )
+                    + "\n"
+                )
 
-        for _, dose in new_doses:
+            await bot.send_message(
+                chat_id=user.telegram_id,
+                text=message,
+                reply_markup=get_taken_keyboard([s for s, _unused in new_doses]),
+            )
+
+        for _unused, dose in new_doses:
             dose.taken_datetime = datetime.now(timezone.utc)
             # Mark as "taken" but unconfirmed until user interacts with the notification
             session.add(dose)

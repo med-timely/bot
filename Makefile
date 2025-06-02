@@ -11,7 +11,7 @@ help:  ## Show this help
 # Environment setup
 .PHONY: setup
 setup:  ## Initialize pipenv environment
-	pipenv --python 3.11
+	pipenv --python 3.12
 	pipenv install --dev
 
 .PHONY: install
@@ -29,7 +29,7 @@ add:  ## Add new package (e.g. make add pkg=requests)
 
 # Development
 .PHONY: run
-run:  ## Run the bot
+run: i18n  ## Run the bot
 	pipenv run python -m src.bot
 
 .PHONY: migrate
@@ -39,6 +39,20 @@ migrate:  ## Create new migration
 .PHONY: upgrade
 upgrade:  ## Apply migrations
 	pipenv run alembic upgrade head
+
+# Internationalization
+.PHONY: i18n-extract i18n-update i18n-compile i18n
+
+i18n-extract:  ## Extract translatable strings
+	pipenv run i18n-extract
+
+i18n-update:  ## Update translation files
+	pipenv run i18n-update
+
+i18n-compile:  ## Compile translations
+	pipenv run i18n-compile
+
+i18n: i18n-extract i18n-update i18n-compile  ## Run all i18n tasks
 
 # Celery
 .PHONY: celery-worker celery-beat celery
@@ -57,6 +71,7 @@ celery:  ## Start both Celery worker and beat (background)
 .PHONY: clean
 clean:  ## Remove virtual environment and cached files
 	pipenv --rm
+	find . -type f -name '*.mo' -delete
 	find . -type f -name '*.pyc' -delete
 	find . -type d -name '__pycache__' -exec rm -rf {} +
 
@@ -70,5 +85,5 @@ lint:  ## Run linter
 	pipenv run flake8 src tests
 
 .PHONY: test
-test:  ## Run tests with coverage
+test: i18n-compile  ## Run tests with coverage
 	pipenv run pytest tests/ -v --cov=src --cov-report=term-missing
