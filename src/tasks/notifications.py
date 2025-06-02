@@ -5,10 +5,11 @@ from datetime import datetime, timezone
 
 from celery import shared_task
 
-from src.models import Schedule
 from src.bot import get_bot
 from src.bot.handlers.schedules.keyboards import get_taken_keyboard
 from src.database.connector import get_db
+from src.i18n import i18n, i18n_context
+from src.models import Schedule
 from src.services import ScheduleService
 
 logger = logging.getLogger(__name__)
@@ -71,9 +72,18 @@ async def send_notification(user_id: int, schedule_ids: list[int]):
             return
 
         user = new_doses[0][0].user
-        message = "⏰ Reminder: Time to take your medications:\n"
-        for schedule, _ in new_doses:
-            message += f"    - {schedule.drug_name}: {schedule.dose}\n"
+
+        with i18n_context(user.language_code):
+            header = i18n.gettext("⏰ Reminder: Time to take your medications:") + "\n"
+            message = header
+            for schedule, _ in new_doses:
+                message += (
+                    "    "
+                    + i18n.gettext("- {drug}: {dose}").format(
+                        drug=schedule.drug_name, dose=schedule.dose
+                    )
+                    + "\n"
+                )
 
         await bot.send_message(
             chat_id=user.telegram_id,

@@ -26,9 +26,13 @@ WORKDIR /app
 
 # Copy dependency files
 COPY Pipfile Pipfile.lock ./
+COPY ./locales ./locales/
 
 # Install project dependencies
 RUN pipenv install --system --deploy --ignore-pipfile
+
+# Compile translations
+RUN pipenv run i18n-compile
 
 # Stage 2: Final image
 FROM python:3.12-slim AS runtime
@@ -53,6 +57,7 @@ USER bot
 # Copy application code
 COPY --chown=bot:bot src src
 COPY --chown=bot:bot alembic.ini alembic.ini
+COPY --from=builder --chown=bot:bot /app/locales locales
 
 # Entrypoint script
 COPY --chown=bot:bot docker-entrypoint.sh /app/

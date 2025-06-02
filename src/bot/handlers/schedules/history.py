@@ -1,6 +1,7 @@
 from aiogram import Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
+from aiogram.utils.i18n import gettext as _
 from aiogram.utils.markdown import hbold
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,15 +12,26 @@ router = Router()
 
 
 async def format_adherence_report(stats: dict) -> str:
-    report = [hbold("📅 Medication Adherence Report:")]
+    report = [hbold(_("📅 Medication Adherence Report:"))]
 
     for drug, data in stats.items():
         report.append(
-            f"💊 {hbold(drug)} ({data['dose']}):\n"
-            f"   ✅ Taken: {data['taken']}/{data['total']} ({data['percentage']}%)\n"
-            f"   ⏰ On Time: {data['on_time']}\n"
-            f"   🕒 Late: {data['late']}\n"
-            f"   ❌ Missed: {data['missed']}"
+            _(
+                "💊 {drug} ({dose}):\n"
+                "   ✅ Taken: {taken}/{total} ({percentage}%)\n"
+                "   ⏰ On Time: {on_time}\n"
+                "   🕒 Late: {late}\n"
+                "   ❌ Missed: {missed}"
+            ).format(
+                drug=hbold(drug),
+                dose=data["dose"],
+                taken=data["taken"],
+                total=data["total"],
+                percentage=data["percentage"],
+                on_time=data["on_time"],
+                late=data["late"],
+                missed=data["missed"],
+            )
         )
 
     return "\n\n".join(report)
@@ -33,20 +45,26 @@ async def handle_history(
     try:
         days = int(command.args) if command.args else 7
     except ValueError:
-        await message.answer("Invalid input. Please provide a valid number of days.")
+        await message.answer(_("Invalid input. Please provide a valid number of days."))
         return
     if days <= 0:
-        await message.answer("Please specify a positive number of days")
+        await message.answer(_("Please specify a positive number of days"))
         return
     if days > 365:
-        await message.answer("Maximum history period is 1 year (365 days)")
+        await message.answer(_("Maximum history period is 1 year (365 days)"))
         return
 
     service = ScheduleService(session)
     stats = await service.get_adherence_stats(user.id, days)
 
     if not stats:
-        await message.answer(f"No medication history found for the last {days} days")
+        await message.answer(
+            _(
+                "No medication history found for the last {days} day",
+                "No medication history found for the last {days} days",
+                days,
+            ).format(days=days)
+        )
         return
 
     response = await format_adherence_report(stats)
