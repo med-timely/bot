@@ -2,6 +2,7 @@ from typing import Callable
 
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardMarkup
+from aiogram.utils.i18n import gettext as _
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from src.models import Schedule
@@ -17,7 +18,9 @@ def get_schedules_keyboard(
     builder = InlineKeyboardBuilder()
     for schedule in schedules:
         builder.button(
-            text=f"{prefix} {schedule.drug_name} ({schedule.dose})",
+            text=_("{prefix} {drug_name} ({dose})").format(
+                prefix=prefix, drug_name=schedule.drug_name, dose=schedule.dose
+            ),
             callback_data=callback_factory(schedule).pack(),
         )
     builder.adjust(1)

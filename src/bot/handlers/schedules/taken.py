@@ -1,6 +1,7 @@
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
+from aiogram.utils.i18n import gettext as _
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.bot.handlers.schedules.keyboards import get_taken_keyboard
@@ -21,11 +22,11 @@ async def handle_taken_command(message: Message, session: AsyncSession, user: Us
     )
 
     if not active_schedules:
-        await message.answer("🎉 No active medications to log now!")
+        await message.answer(_("🎉 No active medications to log now!"))
         return
 
     # Send medication selection keyboard
     await message.answer(
-        "💊 Which medication did you take?",
+        _("💊 Which medication did you take?"),
         reply_markup=get_taken_keyboard(active_schedules),
     )
