@@ -5,14 +5,15 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram.fsm.storage.redis import RedisStorage
 
-
 from src.config import settings
 from src.database.connector import async_session
+from src.i18n import i18n
 from src.services.llm_service import LLMService
 
 from .bot import get_bot
-from .handlers import commands, schedules, error
+from .handlers import commands, error, schedules
 from .middleware.database import DatabaseMiddleware
+from .middleware.i18n import I18nMiddleware
 from .middleware.user import UserMiddleware
 
 
@@ -40,6 +41,7 @@ def create_dispatcher(**kwargs):
     dp = Dispatcher(storage=redis_storage, **kwargs)
 
     # Register middleware
+    dp.update.outer_middleware(I18nMiddleware(i18n))
     dp.update.middleware(DatabaseMiddleware(async_session))
     dp.update.middleware(UserMiddleware())
 

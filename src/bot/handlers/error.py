@@ -3,6 +3,7 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.handlers import ErrorHandler
 from aiogram.types import User, ErrorEvent
+from aiogram.utils.i18n import gettext as _
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,9 @@ class Handler(ErrorHandler):
         try:
             await bot.send_message(
                 chat_id=user.id,
-                text="An error occurred while processing your message. Please try again later.",
+                text=_(
+                    "An error occurred while processing your message. Please try again later."
+                ),
             )
         except TelegramBadRequest as e:
             logger.error("Failed to send error message: %s", e)
