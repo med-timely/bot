@@ -85,11 +85,11 @@ async def send_notification(user_id: int, schedule_ids: list[int]):
                     + "\n"
                 )
 
-        await bot.send_message(
-            chat_id=user.telegram_id,
-            text=message,
-            reply_markup=get_taken_keyboard(schedules),
-        )
+            await bot.send_message(
+                chat_id=user.telegram_id,
+                text=message,
+                reply_markup=get_taken_keyboard(schedules),
+            )
 
         for _, dose in new_doses:
             dose.taken_datetime = datetime.now(timezone.utc)
