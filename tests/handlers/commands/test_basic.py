@@ -25,31 +25,3 @@ async def test_handle_help():
         "/history - Show medication adherence history\n"
         "/stop - Stop medication schedule"
     )
-
-
-@pytest.mark.asyncio
-async def test_handle_me():
-    message = AsyncMock()
-    message.text = "/me"
-    user = User(
-        first_name="John",
-        last_name="Doe",
-        username="johndoe",
-        role=Role.PATIENT,
-        language_code="en",
-        timezone="UTC",
-        privacy_accepted=True,
-    )
-    with i18n.context():
-        await handle_me(message, user)
-
-    # Assert that message.answer was called with the correct user profile information
-    message.answer.assert_called_once_with(
-        "👤 Your Profile:\n"
-        "Name: John Doe\n"
-        "Username: @johndoe\n"
-        "Role: patient\n"
-        "Language: en\n"
-        "Timezone: UTC\n"
-        "Privacy: Accepted"
-    )

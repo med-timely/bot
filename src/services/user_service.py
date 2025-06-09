@@ -1,5 +1,7 @@
+from datetime import time
+
 from cachetools import TTLCache
-from sqlalchemy import select, insert, update
+from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import User
@@ -87,7 +89,17 @@ class UserService:
         language_code: str | None = None,
         timezone: str | None = None,
         phone_number: str | None = None,
+        day_start: time | None = None,
+        day_end: time | None = None,
     ):
+        # Validate paired day bounds
+        if (day_start is not None and day_end is not None) and day_start >= day_end:
+            raise ValueError("`day_start` must be earlier than `day_end`")
+
+        # Optionally enforce atomic updates:
+        if (day_start is None) ^ (day_end is None):
+            raise ValueError("Both `day_start` and `day_end` must be provided together")
+
         values = {}
         if first_name is not None:
             values["first_name"] = first_name
@@ -101,6 +113,10 @@ class UserService:
             values["timezone"] = timezone
         if phone_number is not None:
             values["phone_number"] = phone_number
+        if day_start is not None:
+            values["day_start"] = day_start
+        if day_end is not None:
+            values["day_end"] = day_end
 
         if values:
             await self.session.execute(

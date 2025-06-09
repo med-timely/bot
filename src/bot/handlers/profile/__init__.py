@@ -3,13 +3,21 @@ from aiogram.types import BotCommand
 
 from src.i18n import i18n
 
+from . import edit_hours, me
+
 router = Router()
+router.include_routers(
+    edit_hours.router,
+    me.router,
+)
 
 
 def get_commands(lang: str) -> list[BotCommand]:
     with i18n.context(), i18n.use_locale(lang):
         _ = i18n.gettext
         return [
-            BotCommand(command="start", description=_("Start the bot")),
-            BotCommand(command="help", description=_("Show help")),
+            BotCommand(command="me", description=_("Show your profile information")),
         ]
+
+
+__all__ = ["router", "get_commands"]
