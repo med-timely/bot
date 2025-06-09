@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -15,7 +15,9 @@ def service():
 
 @pytest.fixture
 def user():
-    return User(id=1, timezone="Europe/Moscow")
+    return User(
+        id=1, timezone="Europe/Moscow", day_start=time(8, 0), day_end=time(20, 0)
+    )
 
 
 @pytest.fixture

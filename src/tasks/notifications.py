@@ -43,11 +43,9 @@ async def send_medication_reminders():
             schedules_by_user[user_id].append(schedule)
 
         for user_id, schedules in schedules_by_user.items():
-            local_time = schedules[0].user.in_local_time(now).time()
-            if (
-                local_time < schedules_svc.DAY_START
-                or local_time > schedules_svc.DAY_END
-            ):
+            user = schedules[0].user
+            local_time = user.in_local_time(now).time()
+            if local_time < user.day_start or local_time > user.day_end:
                 continue
 
             send_notification.delay(
