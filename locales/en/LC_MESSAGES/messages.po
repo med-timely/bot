@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-06-12 19:35+0700\n"
+"POT-Creation-Date: 2025-06-17 07:39+0700\n"
 "PO-Revision-Date: 2025-06-01 09:23+0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "An error occurred while processing your message. Please try again later."
 msgstr ""
 
-#: src/bot/handlers/commands/basic.py:17
+#: src/bot/handlers/commands/basic.py:15
 msgid ""
 "🆘 Help:\n"
 "/me - Show your profile information\n"
@@ -33,69 +33,42 @@ msgid ""
 "/stop - Stop medication schedule"
 msgstr ""
 
-#: src/bot/handlers/commands/basic.py:32
-#, python-brace-format
-msgid ""
-"👤 Your Profile:\n"
-"Name: {name}\n"
-"Username: {username}\n"
-"Role: {role}\n"
-"Language: {language}\n"
-"Timezone: {timezone}\n"
-"Privacy: {privacy}"
-msgstr ""
-
-#: src/bot/handlers/commands/basic.py:42
-msgid "Not set"
-msgstr ""
-
-#: src/bot/handlers/commands/basic.py:46
-msgid "Accepted"
-msgstr ""
-
-#: src/bot/handlers/commands/basic.py:46
-msgid "Not Accepted"
-msgstr ""
-
-#: src/bot/handlers/commands/router.py:13
+#: src/bot/handlers/commands/router.py:12
 msgid "Start the bot"
 msgstr ""
 
-#: src/bot/handlers/commands/router.py:14
+#: src/bot/handlers/commands/router.py:13
 msgid "Show help"
 msgstr ""
 
-#: src/bot/handlers/commands/router.py:15
-msgid "Show your profile information"
-msgstr ""
-
-#: src/bot/handlers/commands/start.py:35
+#: src/bot/handlers/commands/start.py:36 src/bot/handlers/commands/start.py:76
 msgid "✅ Accept"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:36
+#: src/bot/handlers/commands/start.py:37 src/bot/handlers/commands/start.py:76
+#: src/bot/handlers/commands/start.py:81
 msgid "❌ Decline"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:42
+#: src/bot/handlers/commands/start.py:43
 msgid "📱 Share Phone"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:43
-#: src/bot/handlers/schedules/create.py:41
-#: src/bot/handlers/schedules/create.py:47
+#: src/bot/handlers/commands/start.py:44
+#: src/bot/handlers/schedules/create.py:36
+#: src/bot/handlers/schedules/create.py:42
 msgid "➡️ Skip"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:49
+#: src/bot/handlers/commands/start.py:50 src/bot/handlers/commands/start.py:191
 msgid "🌍 Share Location"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:57
+#: src/bot/handlers/commands/start.py:58
 msgid "Welcome back! Use /schedule to manage medications."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:61
+#: src/bot/handlers/commands/start.py:62
 msgid ""
 "👋 Welcome to MedTimely!\n"
 "\n"
@@ -104,42 +77,42 @@ msgid ""
 "2. Confirm you agree with data processing"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:81
+#: src/bot/handlers/commands/start.py:83
 msgid "❌ You must accept the privacy policy to use this service."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:90
+#: src/bot/handlers/commands/start.py:92
 msgid ""
 "Thank you for accepting our privacy policy! 🎉\n"
 "\n"
 "Would you like to share your phone number for emergency contacts?"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:102
+#: src/bot/handlers/commands/start.py:104
 msgid "Please use the buttons to accept or decline the privacy policy."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:115
+#: src/bot/handlers/commands/start.py:117
 msgid "⚠️ Please share your phone number."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:119
+#: src/bot/handlers/commands/start.py:121
 msgid "⚠️ Please share your own phone number."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:125
+#: src/bot/handlers/commands/start.py:127
 msgid "✅ Phone number saved!"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:129
+#: src/bot/handlers/commands/start.py:131
 msgid "You can add phone later in profile."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:132
+#: src/bot/handlers/commands/start.py:134
 msgid "Please use the buttons below to share phone or skip."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:136
+#: src/bot/handlers/commands/start.py:138
 msgid ""
 "🌍 For accurate medication reminders, we need your timezone.\n"
 "\n"
@@ -148,26 +121,26 @@ msgid ""
 "2. Send your local time (e.g. 14:30)"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:149
+#: src/bot/handlers/commands/start.py:151
 msgid "Please use the buttons to share phone number or skip."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:166
-#: src/bot/handlers/commands/start.py:172
+#: src/bot/handlers/commands/start.py:168
+#: src/bot/handlers/commands/start.py:174
 #, python-brace-format
 msgid "✅ Timezone detected: {tz}"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:179
+#: src/bot/handlers/commands/start.py:181
 #, python-brace-format
 msgid "✅ Timezone set to {tz} (UTC{offset:+g})"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:191
+#: src/bot/handlers/commands/start.py:193
 msgid "📍 Multiple matches found. Please choose the most suitable timezone:"
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:200
+#: src/bot/handlers/commands/start.py:202
 msgid ""
 "\n"
 "\n"
@@ -178,61 +151,131 @@ msgid ""
 "Type /help anytime for assistance."
 msgstr ""
 
-#: src/bot/handlers/commands/start.py:212
+#: src/bot/handlers/commands/start.py:214
 msgid "❌ Couldn't detect timezone. Please try again."
 msgstr ""
 
-#: src/bot/handlers/schedules/__init__.py:18
+#: src/bot/handlers/profile/__init__.py:18
+msgid "Show your profile information"
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:33
+msgid ""
+"Enter your new daylight hours (start and end) in 24-hour format:\n"
+"Example: 8 22"
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:55
+msgid "❌ Edit cancelled"
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:67
+msgid "❌ Invalid input. Please enter your new daylight hours:"
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:74
+msgid "Please send two hour numbers, e.g. 8 22 or 08-22"
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:79
+msgid "Hours must be between 0-23"
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:81
+msgid "Start hour must be before end hour"
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:90
+msgid "❌ Internal error while saving, please try again later."
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:96
+msgid "✅ Daylight hours updated to {start}:00 – {end}:00"
+msgstr ""
+
+#: src/bot/handlers/profile/edit_hours.py:106
+msgid "❌ Error: {err}. Please try again:"
+msgstr ""
+
+#: src/bot/handlers/profile/keyboards.py:11
+msgid "✏️ Edit Hours"
+msgstr ""
+
+#: src/bot/handlers/profile/me.py:19
+msgid ""
+"👤 Your Profile:\n"
+"Name: {name}\n"
+"Username: {username}\n"
+"Role: {role}\n"
+"Language: {language}\n"
+"Timezone: {timezone}\n"
+"Daylight Hours: {day_start} - {day_end}\n"
+"Privacy: {privacy}"
+msgstr ""
+
+#: src/bot/handlers/profile/me.py:31
+msgid "Not set"
+msgstr ""
+
+#: src/bot/handlers/profile/me.py:37
+msgid "Accepted"
+msgstr ""
+
+#: src/bot/handlers/profile/me.py:37
+msgid "Not Accepted"
+msgstr ""
+
+#: src/bot/handlers/schedules/__init__.py:16
 msgid "Create new medication schedule"
 msgstr ""
 
-#: src/bot/handlers/schedules/__init__.py:20
+#: src/bot/handlers/schedules/__init__.py:17
 msgid "Show active medications"
 msgstr ""
 
-#: src/bot/handlers/schedules/__init__.py:21
+#: src/bot/handlers/schedules/__init__.py:18
 msgid "Confirm dose taken"
 msgstr ""
 
-#: src/bot/handlers/schedules/__init__.py:23
+#: src/bot/handlers/schedules/__init__.py:20
 msgid "Show medication adherence history"
 msgstr ""
 
-#: src/bot/handlers/schedules/__init__.py:25
+#: src/bot/handlers/schedules/__init__.py:22
 msgid "Stop medication schedule"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:35
-#: src/bot/handlers/schedules/create.py:48
-#: src/bot/handlers/schedules/create.py:77
-#: src/bot/handlers/schedules/create.py:114
+#: src/bot/handlers/schedules/create.py:43
+#: src/bot/handlers/schedules/create.py:72
+#: src/bot/handlers/schedules/create.py:109 src/bot/keyboards/__init__.py:9
+#: src/bot/keyboards/__init__.py:16
 msgid "❌ Cancel"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:55
+#: src/bot/handlers/schedules/create.py:50
 msgid "skip"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:55
+#: src/bot/handlers/schedules/create.py:50
 msgid "➡️ skip"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:82
+#: src/bot/handlers/schedules/create.py:77
 msgid "Schedule creation canceled."
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:88
+#: src/bot/handlers/schedules/create.py:83
 #, python-brace-format
 msgid "{duration} day"
 msgid_plural "{duration} days"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/bot/handlers/schedules/create.py:92
+#: src/bot/handlers/schedules/create.py:87
 msgid "not specified"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:94
+#: src/bot/handlers/schedules/create.py:89
 #: src/bot/handlers/schedules/formatters.py:14
 #, python-brace-format
 msgid "{frequency} time/day"
@@ -240,56 +283,56 @@ msgid_plural "{frequency} times/day"
 msgstr[0] ""
 msgstr[1] ""
 
-#: src/bot/handlers/schedules/create.py:98
+#: src/bot/handlers/schedules/create.py:93
 msgid "📝 Please confirm your medication schedule:"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:102
+#: src/bot/handlers/schedules/create.py:97
 #: src/bot/handlers/schedules/formatters.py:19
 msgid "💊 Drug: {drug_name}"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:105
+#: src/bot/handlers/schedules/create.py:100
 #: src/bot/handlers/schedules/formatters.py:23
 msgid "📏 Dose: {dose}"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:106
+#: src/bot/handlers/schedules/create.py:101
 #: src/bot/handlers/schedules/formatters.py:24
 msgid "⏰ Frequency: {frequency}"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:107
+#: src/bot/handlers/schedules/create.py:102
 #, fuzzy, python-brace-format
 msgid "📅 Duration: {duration}"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:108
+#: src/bot/handlers/schedules/create.py:103
 msgid "📝 Note: {comment}"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:109
+#: src/bot/handlers/schedules/create.py:104
 msgid "None"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:113
-#: src/bot/handlers/schedules/create.py:250
+#: src/bot/handlers/schedules/create.py:108
+#: src/bot/handlers/schedules/create.py:245
 msgid "✅ Confirm"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:128
+#: src/bot/handlers/schedules/create.py:123
 msgid ""
 "👋 Welcome to MedTimely!\n"
 "\n"
 "Before we start, please register: /start"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:138
-#: src/bot/handlers/schedules/create.py:170
+#: src/bot/handlers/schedules/create.py:133
+#: src/bot/handlers/schedules/create.py:165
 msgid "I couldn't parse that as a prescription. Let's continue step by step."
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:142
+#: src/bot/handlers/schedules/create.py:137
 msgid ""
 "💊 Let's create a new medication schedule.\n"
 "\n"
@@ -299,44 +342,44 @@ msgid ""
 "for 7 days')"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:158
+#: src/bot/handlers/schedules/create.py:153
 msgid "Please enter a valid drug name:"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:175
+#: src/bot/handlers/schedules/create.py:170
 msgid "📏 Enter dosage (e.g. '1 tablet', '500mg'):"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:185
+#: src/bot/handlers/schedules/create.py:180
 msgid "⏰ How many times per day? (Enter number):"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:194
+#: src/bot/handlers/schedules/create.py:189
 msgid "Please enter a valid frequency:"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:203
+#: src/bot/handlers/schedules/create.py:198
 msgid "📅 Duration in days? (Enter number):"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:208
-#: src/bot/handlers/schedules/create.py:228
+#: src/bot/handlers/schedules/create.py:203
+#: src/bot/handlers/schedules/create.py:223
 msgid "Please enter a valid positive number:"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:214
+#: src/bot/handlers/schedules/create.py:209
 msgid "Please enter a valid duration:"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:232
+#: src/bot/handlers/schedules/create.py:227
 msgid "📝 Any comments? (Optional, type 'skip' to omit):"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:241
+#: src/bot/handlers/schedules/create.py:236
 msgid "Please enter a valid comment:"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:269
+#: src/bot/handlers/schedules/create.py:264
 #, python-brace-format
 msgid ""
 "✅ Schedule created successfully!\n"
@@ -344,11 +387,11 @@ msgid ""
 "You'll receive reminders when it's time to take your medication."
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:277
+#: src/bot/handlers/schedules/create.py:272
 msgid "No doses scheduled (schedule may be complete)"
 msgstr ""
 
-#: src/bot/handlers/schedules/create.py:283
+#: src/bot/handlers/schedules/create.py:278
 #, python-brace-format
 msgid "Error creating schedule: {error}"
 msgstr ""
@@ -388,11 +431,11 @@ msgstr ""
 msgid "   📝 Note: {comment}\n"
 msgstr ""
 
-#: src/bot/handlers/schedules/history.py:15
+#: src/bot/handlers/schedules/history.py:16
 msgid "📅 Medication Adherence Report:"
 msgstr ""
 
-#: src/bot/handlers/schedules/history.py:19
+#: src/bot/handlers/schedules/history.py:20
 #, python-brace-format
 msgid ""
 "💊 {drug} ({dose}):\n"
@@ -402,19 +445,19 @@ msgid ""
 "   ❌ Missed: {missed}"
 msgstr ""
 
-#: src/bot/handlers/schedules/history.py:48
+#: src/bot/handlers/schedules/history.py:49
 msgid "Invalid input. Please provide a valid number of days."
 msgstr ""
 
-#: src/bot/handlers/schedules/history.py:51
+#: src/bot/handlers/schedules/history.py:52
 msgid "Please specify a positive number of days"
 msgstr ""
 
-#: src/bot/handlers/schedules/history.py:54
+#: src/bot/handlers/schedules/history.py:55
 msgid "Maximum history period is 1 year (365 days)"
 msgstr ""
 
-#: src/bot/handlers/schedules/history.py:62
+#: src/bot/handlers/schedules/history.py:63
 #, fuzzy, python-brace-format
 msgid "No medication history found for the last {days} day"
 msgid_plural "No medication history found for the last {days} days"
@@ -457,12 +500,27 @@ msgstr ""
 msgid "💊 Which medication did you take?"
 msgstr ""
 
-#: src/tasks/notifications.py:78
+#: src/services/schedule_service.py:312
+msgid "Schedule not found or doesn't belong to you"
+msgstr ""
+
+#: src/services/schedule_service.py:315
+msgid "Schedule has ended"
+msgstr ""
+
+#: src/services/schedule_service.py:324
+msgid "Dose already recorded"
+msgstr ""
+
+#: src/services/schedule_service.py:329
+msgid "✅ Dose logged successfully for {drug_name}!"
+msgstr ""
+
+#: src/tasks/notifications.py:76
 msgid "⏰ Reminder: Time to take your medications:"
 msgstr ""
 
-#: src/tasks/notifications.py:83
+#: src/tasks/notifications.py:81
 #, python-brace-format
 msgid "- {drug}: {dose}"
 msgstr ""
-

@@ -1,4 +1,5 @@
 from aiogram import Router
+from aiogram.enums import ParseMode
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 from aiogram.utils.i18n import gettext as _
@@ -68,4 +69,4 @@ async def handle_history(
         return
 
     response = await format_adherence_report(stats)
-    await message.answer(response, parse_mode="HTML")
+    await message.answer(response, parse_mode=ParseMode.HTML)
