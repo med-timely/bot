@@ -1,12 +1,9 @@
 from unittest.mock import AsyncMock
 
-from aiogram.utils.i18n import I18n
 import pytest
 
-from src.bot.handlers.commands.basic import handle_help, handle_me
-from src.models import Role, User
-
-i18n = I18n(path="locales")
+from src.bot.handlers.commands.basic import handle_help
+from src.i18n import i18n
 
 
 @pytest.mark.asyncio

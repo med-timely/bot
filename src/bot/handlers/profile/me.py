@@ -23,7 +23,7 @@ async def handle_me(message: Message, user: User):
             "Role: {role}\n"
             "Language: {language}\n"
             "Timezone: {timezone}\n"
-            "Daylight Hours: {day_start}-{day_end}\n"
+            "Daylight Hours: {day_start} - {day_end}\n"
             "Privacy: {privacy}"
         ).format(
             name=html.quote(user.first_name)

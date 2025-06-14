@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from src.bot.handlers.profile.me import handle_me
+from src.i18n import i18n
 from src.models import Role, User
 
 
@@ -22,7 +23,10 @@ async def test_handle_me():
         day_start=time(8, 0),
         day_end=time(20, 0),
     )
-    await handle_me(message, user)
+
+    with i18n.context():
+        await handle_me(message, user)
+
     # Assert that message.answer was called with the correct user profile information
     expected = (
         "👤 Your Profile:\n"
@@ -31,7 +35,7 @@ async def test_handle_me():
         "Role: patient\n"
         "Language: en\n"
         "Timezone: UTC\n"
-        "Daylight Hours: 08:00-20:00\n"
+        "Daylight Hours: 8:00 AM - 8:00 PM\n"
         "Privacy: Accepted"
     )
 
