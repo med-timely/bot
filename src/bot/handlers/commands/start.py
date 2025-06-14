@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import ContentType, KeyboardButton, Message, ReplyKeyboardRemove
 from aiogram.utils.i18n import gettext as _
+from aiogram.utils.i18n import lazy_gettext as __
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from timezonefinder import TimezoneFinder
 
@@ -71,12 +72,13 @@ async def handle_start(message: Message, state: FSMContext, user: User):
 
 
 @router.message(
-    StartStates.waiting_privacy_acceptance, F.text.in_(["✅ Accept", "❌ Decline"])
+    StartStates.waiting_privacy_acceptance,
+    F.text.in_([__("✅ Accept"), __("❌ Decline")]),
 )
 async def handle_privacy_choice(
     message: Message, state: FSMContext, user: User, user_service: UserService
 ):
-    if message.text == "❌ Decline":
+    if message.text == _("❌ Decline"):
         await message.answer(
             _("❌ You must accept the privacy policy to use this service."),
             reply_markup=ReplyKeyboardRemove(),
@@ -186,7 +188,7 @@ async def handle_time_input(
                     builder.button(text=tz)
                 builder.adjust(2)
                 builder.row(
-                    KeyboardButton(text="🌍 Share Location", request_location=True)
+                    KeyboardButton(text=_("🌍 Share Location"), request_location=True)
                 )
                 response = _(
                     "📍 Multiple matches found. Please choose the most suitable timezone:"

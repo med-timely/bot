@@ -1,5 +1,5 @@
-from datetime import datetime, time, timedelta, timezone
 import logging
+from datetime import datetime, time, timedelta, timezone
 from typing import Optional
 
 import pytz
@@ -14,15 +14,23 @@ logger = logging.getLogger(__name__)
 
 
 class ScheduleService:
-    DAY_START = time(8, 0)  # 8:00 AM local time
-    DAY_END = time(20, 0)  # 8:00 PM local time
-
-    @property
-    def daylight_duration_hours(self):
-        return self.DAY_END.hour - self.DAY_START.hour
+    DEFAULT_START = time(8, 0)  # Default start time
+    DEFAULT_END = time(22, 0)  # Default end time
 
     def __init__(self, session: AsyncSession):
         self.session = session
+
+    def _get_daylight_hours(self, user: User) -> tuple[time, time]:
+        """Get user's daylight hours with fallback to defaults"""
+        return (
+            user.day_start if user.day_start else self.DEFAULT_START,
+            user.day_end if user.day_end else self.DEFAULT_END,
+        )
+
+    def _get_daylight_duration(self, user: User) -> float:
+        """Calculate daylight duration in hours for a user"""
+        start, end = self._get_daylight_hours(user)
+        return end.hour - start.hour
 
     # region Create
     async def create_schedule(self, user_id: int, **data) -> Schedule:
@@ -69,12 +77,14 @@ class ScheduleService:
     ) -> list[Schedule]:
         """Get active schedules with optimized filters"""
         now = datetime.now(timezone.utc)
+
         whereclause = self._get_active_filter(now, only_today, not_taken)
         if user_id is not None:
             whereclause &= Schedule.user_id == user_id
 
         stmt = (
             select(Schedule)
+            .join(Schedule.user)
             .options(*self._get_loading_options(with_doses, with_user))
             .where(whereclause)
             .order_by(Schedule.start_datetime)
@@ -93,6 +103,7 @@ class ScheduleService:
         not_taken: bool = False,
     ) -> list[Schedule]:
         now = datetime.now(timezone.utc)
+
         whereclause = (
             (Schedule.user_id == user_id)
             & (Schedule.id.in_(schedule_ids))
@@ -101,6 +112,7 @@ class ScheduleService:
 
         stmt = (
             select(Schedule)
+            .join(Schedule.user)
             .options(
                 *self._get_loading_options(with_doses, with_user),
             )
@@ -159,8 +171,8 @@ class ScheduleService:
                     Dose.confirmed,
                     Dose.taken_datetime
                     > text(
-                        "UTC_TIMESTAMP() - INTERVAL :period / schedules.doses_per_day HOUR"
-                    ).bindparams(period=self.daylight_duration_hours),
+                        "UTC_TIMESTAMP() - INTERVAL ((HOUR(`users`.`day_end`) - HOUR(`users`.`day_start`)) / `schedules`.`doses_per_day` / 2) HOUR"
+                    ),
                 )
                 .exists()
             )
@@ -223,9 +235,7 @@ class ScheduleService:
         if not doses:
             # First dose in a day
             start_local = max(now_local, user.in_local_time(schedule.start_datetime))
-            return self._validate_next_local(start_local, user.tz).astimezone(
-                timezone.utc
-            )
+            return self._validate_next_local(start_local, user).astimezone(timezone.utc)
 
         # Check if all doses have been taken
         if schedule.duration:
@@ -234,12 +244,14 @@ class ScheduleService:
                 return None
 
         # Calculate next dose time (distributed evenly across day)
-        dose_interval = schedule.dose_interval_in_hours(self.daylight_duration_hours)
+        dose_interval = schedule.dose_interval_in_hours(
+            self._get_daylight_duration(user)
+        )
         last_dose_local = user.in_local_time(doses[-1].taken_datetime)
         next_local = max(now_local, last_dose_local + timedelta(hours=dose_interval))
 
         # If next time would be at night, move to next morning
-        next_local = self._validate_next_local(next_local, user.tz)
+        next_local = self._validate_next_local(next_local, user)
 
         # Check if this dose was already taken (within 1 hour window)
         next_utc = next_local.astimezone(timezone.utc)
@@ -249,7 +261,9 @@ class ScheduleService:
         ).astimezone(timezone.utc)
 
     async def get_current_dose(self, schedule: Schedule) -> Dose:
-        dose_interval = schedule.dose_interval_in_hours(self.daylight_duration_hours)
+        dose_interval = schedule.dose_interval_in_hours(
+            self._get_daylight_duration(schedule.user)
+        )
         window_start = datetime.now(timezone.utc) - timedelta(
             minutes=dose_interval * 60 / 2
         )
@@ -315,17 +329,19 @@ class ScheduleService:
 
         return True, f"✅ Dose logged successfully for {schedule.drug_name}!"
 
-    def _validate_next_local(
-        self, next_local: datetime, tz: pytz.BaseTzInfo
-    ) -> datetime:
-        if self.DAY_START <= next_local.time() <= self.DAY_END:
+    def _validate_next_local(self, next_local: datetime, user: User) -> datetime:
+        """Ensure next dose time falls within user's daylight hours"""
+        day_start, day_end = self._get_daylight_hours(user)
+        tz = user.tz
+
+        if day_start <= next_local.time() <= day_end:
             return next_local
 
-        if next_local.time() < self.DAY_START:
-            return tz.localize(datetime.combine(next_local.date(), self.DAY_START))
+        if next_local.time() < day_start:
+            return tz.localize(datetime.combine(next_local.date(), day_start))
 
         next_day = next_local.date() + timedelta(days=1)
-        next_local = tz.localize(datetime.combine(next_day, self.DAY_START))
+        next_local = tz.localize(datetime.combine(next_day, day_start))
 
         return next_local
 
@@ -352,7 +368,7 @@ class ScheduleService:
         while round(next_utc.timestamp() / tolerance_seconds) in rounded_dose_times:
             # Dose already taken - skip to next interval
             next_local += timedelta(hours=dose_interval)
-            next_local = self._validate_next_local(next_local, user.tz)
+            next_local = self._validate_next_local(next_local, user)
             next_utc = next_local.astimezone(timezone.utc)
 
         return next_utc
@@ -444,8 +460,10 @@ class ScheduleService:
         local_end = end.astimezone(tz).date()
         days = (local_end - local_start).days + 1
 
+        day_start, _ = self._get_daylight_hours(schedule.user)
         interval_sec = (
-            schedule.dose_interval_in_hours(self.daylight_duration_hours) * 3600
+            schedule.dose_interval_in_hours(self._get_daylight_duration(schedule.user))
+            * 3600
         )
 
         expected: list[datetime] = []
@@ -454,7 +472,7 @@ class ScheduleService:
             for i in range(schedule.doses_per_day):
                 local_dt = datetime.combine(
                     base_date,
-                    self.DAY_START,
+                    day_start,
                 ) + timedelta(seconds=interval_sec * i)
                 expected.append(tz.localize(local_dt))
 

@@ -1,9 +1,9 @@
 import enum
-from datetime import datetime
+from datetime import datetime, time
 from functools import cached_property
 
 import pytz
-from sqlalchemy import CheckConstraint, Enum, ForeignKey, String
+from sqlalchemy import CheckConstraint, Enum, ForeignKey, String, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database.connector import Base
@@ -20,6 +20,12 @@ class Role(enum.Enum):
 
 class User(Base, TimedModelMixin):
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint(
+            "day_start < day_end",
+            name="ck_users_daylight_order",
+        ),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(
@@ -42,6 +48,13 @@ class User(Base, TimedModelMixin):
     role: Mapped[Role] = mapped_column(Enum(Role), default=Role.PATIENT)
 
     privacy_accepted: Mapped[bool] = mapped_column(default=False)
+
+    day_start: Mapped[time] = mapped_column(
+        server_default=text("'08:00:00'"), nullable=False
+    )
+    day_end: Mapped[time] = mapped_column(
+        server_default=text("'22:00:00'"), nullable=False
+    )
 
     # Relationships
     schedules: Mapped[list["Schedule"]] = relationship(
