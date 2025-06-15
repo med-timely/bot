@@ -10,6 +10,7 @@ from aiogram.utils.i18n import lazy_gettext as __
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.bot.keyboards import get_cancel_keyboard
 from src.models import User
 from src.services.llm_service import LLMService
 from src.services.schedule_service import ScheduleService
@@ -28,12 +29,6 @@ class ScheduleStates(StatesGroup):
     waiting_duration = State()
     waiting_comment = State()
     waiting_confirmation = State()
-
-
-def get_cancel_keyboard():
-    builder = ReplyKeyboardBuilder()
-    builder.button(text=_("❌ Cancel"))
-    return builder.as_markup(resize_keyboard=True, one_time_keyboard=True)
 
 
 def get_skip_keyboard():
