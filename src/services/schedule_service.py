@@ -2,11 +2,13 @@ import logging
 from datetime import datetime, time, timedelta, timezone
 from typing import Optional
 
+from aiogram.utils.i18n import gettext as _
 import pytz
 from sqlalchemy import BooleanClauseList, asc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.base import ExecutableOption
+
 
 from src.models import Dose, Schedule, User
 
@@ -307,10 +309,10 @@ class ScheduleService:
         schedule = result.scalar_one_or_none()
 
         if not schedule:
-            return False, "Schedule not found or doesn't belong to you"
+            return False, _("Schedule not found or doesn't belong to you")
 
         if schedule.end_datetime and datetime.now(timezone.utc) > schedule.end_datetime:
-            return False, "Schedule has ended"
+            return False, _("Schedule has ended")
 
         existing_dose = await self.get_current_dose(schedule)
 
@@ -319,12 +321,14 @@ class ScheduleService:
             dose.taken_datetime = datetime.now(timezone.utc)
             dose.confirmed = True
         else:
-            return False, "Dose already recorded"
+            return False, _("Dose already recorded")
 
         self.session.add(dose)
         await self.session.commit()
 
-        return True, f"✅ Dose logged successfully for {schedule.drug_name}!"
+        return True, _("✅ Dose logged successfully for {drug_name}!").format(
+            drug_name=schedule.drug_name,
+        )
 
     def _validate_next_local(self, next_local: datetime, user: User) -> datetime:
         """Ensure next dose time falls within user's daylight hours"""

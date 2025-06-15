@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-06-16 05:54+0700\n"
+"POT-Creation-Date: 2025-06-16 05:58+0700\n"
 "PO-Revision-Date: 2025-06-01 09:23+0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -500,6 +500,22 @@ msgstr ""
 msgid "💊 Which medication did you take?"
 msgstr ""
 
+#: src/services/schedule_service.py:312
+msgid "Schedule not found or doesn't belong to you"
+msgstr ""
+
+#: src/services/schedule_service.py:315
+msgid "Schedule has ended"
+msgstr ""
+
+#: src/services/schedule_service.py:324
+msgid "Dose already recorded"
+msgstr ""
+
+#: src/services/schedule_service.py:329
+msgid "✅ Dose logged successfully for {drug_name}!"
+msgstr ""
+
 #: src/tasks/notifications.py:78
 msgid "⏰ Reminder: Time to take your medications:"
 msgstr ""
@@ -508,3 +524,4 @@ msgstr ""
 #, python-brace-format
 msgid "- {drug}: {dose}"
 msgstr ""
+

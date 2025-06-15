@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-06-16 05:54+0700\n"
+"POT-Creation-Date: 2025-06-16 05:58+0700\n"
 "PO-Revision-Date: 2025-06-01 09:23+0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -229,8 +229,7 @@ msgstr "Начальный час должен быть раньше оконч�
 
 #: src/bot/handlers/profile/edit_hours.py:89
 msgid "❌ Internal error while saving, please try again later."
-msgstr ""
-"❌ Внутренняя ошибка при сохранении, пожалуйста, попробуйте еще раз."
+msgstr "❌ Внутренняя ошибка при сохранении, пожалуйста, попробуйте еще раз."
 
 #: src/bot/handlers/profile/edit_hours.py:95
 msgid "✅ Daylight hours updated to {start_hour:02d}:00 - {end_hour:02d}:00"
@@ -580,6 +579,22 @@ msgstr "🎉 Нет активных лекарств для отметки се
 msgid "💊 Which medication did you take?"
 msgstr "💊 Какое лекарство вы приняли?"
 
+#: src/services/schedule_service.py:312
+msgid "Schedule not found or doesn't belong to you"
+msgstr "Расписание не найдено или не принадлежит вам"
+
+#: src/services/schedule_service.py:315
+msgid "Schedule has ended"
+msgstr "Прием завершен"
+
+#: src/services/schedule_service.py:324
+msgid "Dose already recorded"
+msgstr "Доза уже отмечена"
+
+#: src/services/schedule_service.py:329
+msgid "✅ Dose logged successfully for {drug_name}!"
+msgstr "✅ Доза отмечена успешно для {drug_name}!"
+
 #: src/tasks/notifications.py:78
 msgid "⏰ Reminder: Time to take your medications:"
 msgstr "⏰ Напоминание: Время принять лекарства:"
@@ -588,7 +603,3 @@ msgstr "⏰ Напоминание: Время принять лекарства
 #, python-brace-format
 msgid "- {drug}: {dose}"
 msgstr "- {drug}: {dose}"
-
-#~ msgid "❌ Error"
-#~ msgstr "❌ Ошибка"
-
