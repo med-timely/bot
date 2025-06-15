@@ -14,17 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 class ScheduleService:
-    DEFAULT_START = time(8, 0)  # Default start time
-    DEFAULT_END = time(22, 0)  # Default end time
-
     def __init__(self, session: AsyncSession):
         self.session = session
 
     def _get_daylight_hours(self, user: User) -> tuple[time, time]:
         """Get user's daylight hours with fallback to defaults"""
         return (
-            user.day_start if user.day_start else self.DEFAULT_START,
-            user.day_end if user.day_end else self.DEFAULT_END,
+            user.day_start,
+            user.day_end,
         )
 
     def _get_daylight_duration(self, user: User) -> float:

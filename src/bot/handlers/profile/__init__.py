@@ -12,12 +12,11 @@ router.include_routers(
 )
 
 
-def get_commands(lang: str) -> list[BotCommand]:
-    with i18n.context(), i18n.use_locale(lang):
-        _ = i18n.gettext
-        return [
-            BotCommand(command="me", description=_("Show your profile information")),
-        ]
+def get_commands() -> list[BotCommand]:
+    _ = i18n.gettext
+    return [
+        BotCommand(command="me", description=_("Show your profile information")),
+    ]
 
 
 __all__ = ["router", "get_commands"]

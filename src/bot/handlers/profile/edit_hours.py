@@ -79,9 +79,17 @@ async def set_hours_handler(
         if start_hour >= end_hour:
             raise ValueError(_("Start hour must be before end hour"))
 
-        await user_service.update(
-            user.id, day_start=time(start_hour, 0), day_end=time(end_hour, 0)
-        )
+        try:
+            await user_service.update(
+                user.id, day_start=time(start_hour, 0), day_end=time(end_hour, 0)
+            )
+        except Exception:
+            logger.exception("Failed to update daylight hours for user %s", user.id)
+            await message.reply(
+                _("❌ Internal error while saving, please try again later.")
+            )
+            return  # keep state so the user can retry
+
         await state.clear()
         await message.reply(
             _(
@@ -93,4 +101,4 @@ async def set_hours_handler(
         logger.info(
             "Invalid daylight-hours input from user %s: %s", user.id, message.text
         )
-        await message.reply(_("❌ Error") + ": " + str(e) + _("Please try again") + ":")
+        await message.reply(_("❌ Error: {err}. Please try again:").format(err=str(e)))

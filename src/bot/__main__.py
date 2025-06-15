@@ -11,7 +11,7 @@ from src.i18n import i18n
 from src.services.llm_service import LLMService
 
 from .bot import get_bot
-from .handlers import commands, schedules, error, profile
+from .handlers import commands, error, profile, schedules
 from .middleware.database import DatabaseMiddleware
 from .middleware.i18n import I18nMiddleware
 from .middleware.user import UserMiddleware
@@ -56,12 +56,13 @@ def create_dispatcher(**kwargs):
 
 async def set_bot_commands(bot: Bot):
     for lang in ["en", "ru"]:  # Supported languages
-        commands_list = (
-            commands.get_commands(lang)
-            + schedules.get_commands(lang)
-            + profile.get_commands(lang)
-        )
-        await bot.set_my_commands(commands=commands_list, language_code=lang)
+        with i18n.context(), i18n.use_locale(lang):
+            commands_list = (
+                commands.get_commands()
+                + schedules.get_commands()
+                + profile.get_commands()
+            )
+            await bot.set_my_commands(commands=commands_list, language_code=lang)
 
 
 async def main():

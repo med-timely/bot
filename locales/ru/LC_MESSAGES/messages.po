@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-06-14 15:24+0700\n"
+"POT-Creation-Date: 2025-06-16 05:54+0700\n"
 "PO-Revision-Date: 2025-06-01 09:23+0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -43,11 +43,11 @@ msgstr ""
 "/history - Показать историю приема лекарств\n"
 "/stop - Завершить прием"
 
-#: src/bot/handlers/commands/router.py:13
+#: src/bot/handlers/commands/router.py:12
 msgid "Start the bot"
 msgstr "Запустить бота"
 
-#: src/bot/handlers/commands/router.py:14
+#: src/bot/handlers/commands/router.py:13
 msgid "Show help"
 msgstr "Помощь"
 
@@ -194,9 +194,9 @@ msgstr ""
 msgid "❌ Couldn't detect timezone. Please try again."
 msgstr "❌ Не удалось определить часовой пояс. Пожалуйста, попробуйте еще раз."
 
-#: src/bot/handlers/profile/__init__.py:19
+#: src/bot/handlers/profile/__init__.py:18
 msgid "Show your profile information"
-msgstr "Мой профиль"
+msgstr "Показать информацию о профиле"
 
 #: src/bot/handlers/profile/edit_hours.py:32
 msgid ""
@@ -227,17 +227,18 @@ msgstr "Часы должны быть от 0 до 23"
 msgid "Start hour must be before end hour"
 msgstr "Начальный час должен быть раньше окончательного часа"
 
-#: src/bot/handlers/profile/edit_hours.py:87
+#: src/bot/handlers/profile/edit_hours.py:89
+msgid "❌ Internal error while saving, please try again later."
+msgstr ""
+"❌ Внутренняя ошибка при сохранении, пожалуйста, попробуйте еще раз."
+
+#: src/bot/handlers/profile/edit_hours.py:95
 msgid "✅ Daylight hours updated to {start_hour:02d}:00 - {end_hour:02d}:00"
 msgstr "✅ Часы бодрствования изменены на {start_hour:02d}:00 - {end_hour:02d}:00"
 
-#: src/bot/handlers/profile/edit_hours.py:96
-msgid "❌ Error"
-msgstr "❌ Ошибка"
-
-#: src/bot/handlers/profile/edit_hours.py:96
-msgid "Please try again"
-msgstr "Пожалуйста, попробуйте снова:"
+#: src/bot/handlers/profile/edit_hours.py:104
+msgid "❌ Error: {err}. Please try again:"
+msgstr "❌ Ошибка: {err}. Пожалуйста, попробуйте еще раз:"
 
 #: src/bot/handlers/profile/keyboards.py:11
 msgid "✏️ Edit Hours"
@@ -251,7 +252,7 @@ msgid ""
 "Role: {role}\n"
 "Language: {language}\n"
 "Timezone: {timezone}\n"
-"Daylight Hours: {day_start}-{day_end}\n"
+"Daylight Hours: {day_start} - {day_end}\n"
 "Privacy: {privacy}"
 msgstr ""
 "👤 Ваш профиль:\n"
@@ -260,7 +261,7 @@ msgstr ""
 "Роль: {role}\n"
 "Язык: {language}\n"
 "Часовой пояс: {timezone}\n"
-"Часы бодрствования: {day_start}-{day_end}\n"
+"Часы бодрствования: {day_start} - {day_end}\n"
 "Политика конфиденциальности: {privacy}"
 
 #: src/bot/handlers/profile/me.py:31
@@ -275,23 +276,23 @@ msgstr "✅ Принята"
 msgid "Not Accepted"
 msgstr "❌ Не принята"
 
-#: src/bot/handlers/schedules/__init__.py:18
+#: src/bot/handlers/schedules/__init__.py:16
 msgid "Create new medication schedule"
 msgstr "Создать новое расписание приема лекарств"
 
-#: src/bot/handlers/schedules/__init__.py:20
+#: src/bot/handlers/schedules/__init__.py:17
 msgid "Show active medications"
 msgstr "Показать активные расписания"
 
-#: src/bot/handlers/schedules/__init__.py:21
+#: src/bot/handlers/schedules/__init__.py:18
 msgid "Confirm dose taken"
 msgstr "Подтвердить прием дозы"
 
-#: src/bot/handlers/schedules/__init__.py:23
+#: src/bot/handlers/schedules/__init__.py:20
 msgid "Show medication adherence history"
 msgstr "Показать историю приема лекарств"
 
-#: src/bot/handlers/schedules/__init__.py:25
+#: src/bot/handlers/schedules/__init__.py:22
 msgid "Stop medication schedule"
 msgstr "Остановить расписание приема лекарств"
 
@@ -587,4 +588,7 @@ msgstr "⏰ Напоминание: Время принять лекарства
 #, python-brace-format
 msgid "- {drug}: {dose}"
 msgstr "- {drug}: {dose}"
+
+#~ msgid "❌ Error"
+#~ msgstr "❌ Ошибка"
 
