@@ -55,8 +55,8 @@ def create_dispatcher(**kwargs):
 
 
 async def set_bot_commands(bot: Bot):
-    for lang in ["en", "ru"]:  # Supported languages
-        with i18n.context(), i18n.use_locale(lang):
+    for lang in [None, "en", "ru"]:  # Supported languages
+        with i18n.context(), i18n.use_locale(lang or "en"):
             commands_list = (
                 commands.get_commands()
                 + schedules.get_commands()
