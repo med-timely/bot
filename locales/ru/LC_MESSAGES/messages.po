@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-06-17 07:39+0700\n"
+"POT-Creation-Date: 2025-07-08 10:49+0700\n"
 "PO-Revision-Date: 2025-06-01 09:23+0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -198,7 +198,7 @@ msgstr "❌ Не удалось определить часовой пояс. П
 msgid "Show your profile information"
 msgstr "Показать информацию о профиле"
 
-#: src/bot/handlers/profile/edit_hours.py:33
+#: src/bot/handlers/profile/edit_hours.py:35
 msgid ""
 "Enter your new daylight hours (start and end) in 24-hour format:\n"
 "Example: 8 22"
@@ -207,35 +207,35 @@ msgstr ""
 "формате:\n"
 "Например: 8 22"
 
-#: src/bot/handlers/profile/edit_hours.py:55
+#: src/bot/handlers/profile/edit_hours.py:57
 msgid "❌ Edit cancelled"
 msgstr "❌ Редактирование отменено"
 
-#: src/bot/handlers/profile/edit_hours.py:67
+#: src/bot/handlers/profile/edit_hours.py:69
 msgid "❌ Invalid input. Please enter your new daylight hours:"
 msgstr "Некорректный ввод. Пожалуйста, попробуйте еще раз:"
 
-#: src/bot/handlers/profile/edit_hours.py:74
+#: src/bot/handlers/profile/edit_hours.py:76
 msgid "Please send two hour numbers, e.g. 8 22 or 08-22"
 msgstr "Пожалуйста, отправьте два числа, например, 8 22 или 08-22"
 
-#: src/bot/handlers/profile/edit_hours.py:79
+#: src/bot/handlers/profile/edit_hours.py:81
 msgid "Hours must be between 0-23"
 msgstr "Часы должны быть от 0 до 23"
 
-#: src/bot/handlers/profile/edit_hours.py:81
+#: src/bot/handlers/profile/edit_hours.py:83
 msgid "Start hour must be before end hour"
 msgstr "Начальный час должен быть раньше окончательного часа"
 
-#: src/bot/handlers/profile/edit_hours.py:90
+#: src/bot/handlers/profile/edit_hours.py:92
 msgid "❌ Internal error while saving, please try again later."
 msgstr "❌ Внутренняя ошибка при сохранении, пожалуйста, попробуйте еще раз."
 
-#: src/bot/handlers/profile/edit_hours.py:96
+#: src/bot/handlers/profile/edit_hours.py:98
 msgid "✅ Daylight hours updated to {start}:00 – {end}:00"
 msgstr "✅ Часы бодрствования изменены на {start}:00 - {end}:00"
 
-#: src/bot/handlers/profile/edit_hours.py:106
+#: src/bot/handlers/profile/edit_hours.py:108
 msgid "❌ Error: {err}. Please try again:"
 msgstr "❌ Ошибка: {err}. Пожалуйста, попробуйте еще раз:"
 
@@ -579,19 +579,19 @@ msgstr "🎉 Нет активных лекарств для отметки се
 msgid "💊 Which medication did you take?"
 msgstr "💊 Какое лекарство вы приняли?"
 
-#: src/services/schedule_service.py:312
+#: src/services/schedule_service.py:360
 msgid "Schedule not found or doesn't belong to you"
 msgstr "Расписание не найдено или не принадлежит вам"
 
-#: src/services/schedule_service.py:315
+#: src/services/schedule_service.py:363
 msgid "Schedule has ended"
 msgstr "Прием завершен"
 
-#: src/services/schedule_service.py:324
+#: src/services/schedule_service.py:372
 msgid "Dose already recorded"
 msgstr "Доза уже отмечена"
 
-#: src/services/schedule_service.py:329
+#: src/services/schedule_service.py:377
 msgid "✅ Dose logged successfully for {drug_name}!"
 msgstr "✅ Доза отмечена успешно для {drug_name}!"
 
