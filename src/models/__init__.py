@@ -66,12 +66,22 @@ class User(Base, TimedModelMixin):
     doses: Mapped[list["Dose"]] = relationship(back_populates="user", lazy="select")
 
     @cached_property
+    def daylight_duration(self) -> float:
+        # Convert times to minutes since midnight for accurate calculation
+        start_minutes = self.day_start.hour * 60 + self.day_start.minute
+        end_minutes = self.day_end.hour * 60 + self.day_end.minute
+        return (end_minutes - start_minutes) / 60.0
+
+    @cached_property
     def tz(self) -> pytz.BaseTzInfo:
         return pytz.timezone(self.timezone)
 
     def in_local_time(self, dt: datetime) -> datetime:
         """Convert UTC datetime to user's local time"""
         return dt.astimezone(self.tz)
+
+    def __repr__(self):
+        return f"<User id={self.id} first_name={self.first_name} last_name={self.last_name}>"
 
 
 class Schedule(Base, TimedModelMixin):
@@ -103,9 +113,6 @@ class Schedule(Base, TimedModelMixin):
     # Relationships
     user: Mapped["User"] = relationship(back_populates="schedules", lazy="select")
     doses: Mapped[list["Dose"]] = relationship(back_populates="schedule", lazy="select")
-
-    def dose_interval_in_hours(self, daylight_hours: float) -> float:
-        return daylight_hours / self.doses_per_day
 
     def __repr__(self) -> str:
         return (

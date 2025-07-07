@@ -28,7 +28,7 @@ def schedule(user):
         doses_per_day=3,
         dose=50,
         drug_name="TestDrug",
-        start_datetime=datetime(2024, 1, 1),
+        start_datetime=datetime(2024, 1, 1, tzinfo=timezone.utc),
         doses=[],
     )
 
@@ -39,11 +39,11 @@ async def test_first_dose_calculation_within_daylight_hours(service, user, sched
     with patch(
         "src.services.schedule_service.datetime", wraps=datetime
     ) as mock_datetime:
-        mock_datetime.now.return_value = datetime(2024, 1, 1, 7, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = datetime(2024, 1, 1, 8, 0, tzinfo=timezone.utc)
         next_dose = await service.get_next_dose_time(user, schedule)
 
         # Verify next dose is current time
-        assert next_dose == datetime(2024, 1, 1, 7, 0, tzinfo=timezone.utc)
+        assert next_dose == datetime(2024, 1, 1, 8, 0, tzinfo=timezone.utc)
 
 
 @pytest.mark.parametrize(
@@ -112,7 +112,7 @@ async def test_dose_intervals(
 
     schedule = Schedule(
         doses_per_day=doses_per_day,
-        start_datetime=datetime(2024, 1, 1),
+        start_datetime=datetime(2024, 1, 1, tzinfo=timezone.utc),
         doses=[],
     )
 
@@ -162,3 +162,117 @@ async def test_create_schedule_error(service, schedule):
     service.session.commit.side_effect = Exception("Create failed")
     with pytest.raises(Exception):
         await service.create_schedule(schedule)
+
+
+def test_get_doses_times_one_dose_per_day(service, user, schedule):
+    """Test that get_doses_times returns the correct time for one dose per day."""
+    schedule.doses_per_day = 1
+    times = service.get_doses_times(user, schedule)
+    assert times == [user.day_start]
+
+
+def test_get_doses_times_two_doses_per_day(service, user, schedule):
+    """Test that get_doses_times returns the correct times for two doses per day."""
+    schedule.doses_per_day = 2
+    times = service.get_doses_times(user, schedule)
+    assert times == [user.day_start, user.day_end]
+
+
+def test_get_doses_times_multiple_doses_per_day(service, user, schedule):
+    """Test that get_doses_times returns evenly spaced times for multiple doses per day."""
+    schedule.doses_per_day = 4
+    times = service.get_doses_times(user, schedule)
+
+    expected_times = [
+        user.day_start,
+        user.day_start.replace(hour=user.day_start.hour + 4),
+        user.day_start.replace(hour=user.day_start.hour + 8),
+        user.day_start.replace(hour=user.day_start.hour + 12),
+    ]
+
+    assert times == expected_times
+
+
+def test_calculate_expected_doses_one_day(service, user, schedule):
+    """Test _calculate_expected_doses for a single day."""
+    start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    end = datetime(2024, 1, 1, 23, 59, 59, tzinfo=timezone.utc)
+
+    expected_doses = service._calculate_expected_doses(user, schedule, start, end)
+
+    # For 3 doses per day, we should get 3 doses on the same day
+    assert len(expected_doses) == 3
+
+    # All doses should be on the same day
+    assert all(d.date() == datetime(2024, 1, 1).date() for d in expected_doses)
+
+    # Check that the times match the expected dose times
+    expected_times = [
+        time(8, 0),
+        time(14, 0),
+        time(20, 0),
+    ]
+    assert [d.time() for d in expected_doses] == expected_times
+
+
+def test_calculate_expected_doses_multiple_days(service, user, schedule):
+    """Test _calculate_expected_doses for multiple days."""
+    start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    end = datetime(2024, 1, 3, 23, 59, 59, tzinfo=timezone.utc)
+
+    expected_doses = service._calculate_expected_doses(user, schedule, start, end)
+
+    # For 3 doses per day over 3 days, we should get 9 doses
+    assert len(expected_doses) == 9
+
+    # Check that we have doses for all 3 days
+    dates = {d.date() for d in expected_doses}
+    expected_dates = {
+        datetime(2024, 1, 1).date(),
+        datetime(2024, 1, 2).date(),
+        datetime(2024, 1, 3).date(),
+    }
+    assert dates == expected_dates
+
+    # Check that each day has the correct number of doses
+    for date in expected_dates:
+        daily_doses = [d for d in expected_doses if d.date() == date]
+        assert len(daily_doses) == 3
+
+        # Check that the times match the expected dose times
+        expected_times = [
+            time(8, 0),
+            time(14, 0),
+            time(20, 0),
+        ]
+        assert [d.time() for d in daily_doses] == expected_times
+
+
+def test_calculate_expected_doses_before_schedule_start(service, user, schedule):
+    """Test _calculate_expected_doses when start is before schedule start."""
+    # Move schedule start to 2024-01-02
+    schedule.start_datetime = datetime(2024, 1, 2, tzinfo=timezone.utc)
+
+    # Request doses from 2024-01-01 to 2024-01-01
+    start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    end = datetime(2024, 1, 1, 23, 59, 59, tzinfo=timezone.utc)
+
+    expected_doses = service._calculate_expected_doses(user, schedule, start, end)
+
+    # Should be empty since it's before schedule start
+    assert len(expected_doses) == 0
+
+
+def test_calculate_expected_doses_after_schedule_end(service, user, schedule):
+    """Test _calculate_expected_doses when end is after schedule end."""
+    # Set schedule to end on 2024-01-02
+    schedule.end_datetime = datetime(2024, 1, 2, tzinfo=timezone.utc)
+
+    # Request doses from 2024-01-03 to 2024-01-03
+    start = datetime(2024, 1, 3, tzinfo=timezone.utc)
+    end = datetime(2024, 1, 3, 23, 59, 59, tzinfo=timezone.utc)
+
+    expected_doses = service._calculate_expected_doses(user, schedule, start, end)
+
+    # Should be empty since it's after schedule end
+    assert len(expected_doses) == 0

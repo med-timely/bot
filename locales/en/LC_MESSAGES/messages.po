@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-06-17 07:39+0700\n"
+"POT-Creation-Date: 2025-07-08 10:49+0700\n"
 "PO-Revision-Date: 2025-06-01 09:23+0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en\n"
@@ -159,41 +159,41 @@ msgstr ""
 msgid "Show your profile information"
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:33
+#: src/bot/handlers/profile/edit_hours.py:35
 msgid ""
 "Enter your new daylight hours (start and end) in 24-hour format:\n"
 "Example: 8 22"
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:55
+#: src/bot/handlers/profile/edit_hours.py:57
 msgid "❌ Edit cancelled"
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:67
+#: src/bot/handlers/profile/edit_hours.py:69
 msgid "❌ Invalid input. Please enter your new daylight hours:"
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:74
+#: src/bot/handlers/profile/edit_hours.py:76
 msgid "Please send two hour numbers, e.g. 8 22 or 08-22"
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:79
+#: src/bot/handlers/profile/edit_hours.py:81
 msgid "Hours must be between 0-23"
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:81
+#: src/bot/handlers/profile/edit_hours.py:83
 msgid "Start hour must be before end hour"
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:90
+#: src/bot/handlers/profile/edit_hours.py:92
 msgid "❌ Internal error while saving, please try again later."
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:96
+#: src/bot/handlers/profile/edit_hours.py:98
 msgid "✅ Daylight hours updated to {start}:00 – {end}:00"
 msgstr ""
 
-#: src/bot/handlers/profile/edit_hours.py:106
+#: src/bot/handlers/profile/edit_hours.py:108
 msgid "❌ Error: {err}. Please try again:"
 msgstr ""
 
@@ -500,19 +500,19 @@ msgstr ""
 msgid "💊 Which medication did you take?"
 msgstr ""
 
-#: src/services/schedule_service.py:312
+#: src/services/schedule_service.py:360
 msgid "Schedule not found or doesn't belong to you"
 msgstr ""
 
-#: src/services/schedule_service.py:315
+#: src/services/schedule_service.py:363
 msgid "Schedule has ended"
 msgstr ""
 
-#: src/services/schedule_service.py:324
+#: src/services/schedule_service.py:372
 msgid "Dose already recorded"
 msgstr ""
 
-#: src/services/schedule_service.py:329
+#: src/services/schedule_service.py:377
 msgid "✅ Dose logged successfully for {drug_name}!"
 msgstr ""
 
@@ -524,3 +524,4 @@ msgstr ""
 #, python-brace-format
 msgid "- {drug}: {dose}"
 msgstr ""
+
