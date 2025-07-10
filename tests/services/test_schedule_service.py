@@ -22,6 +22,8 @@ def user():
 
 @pytest.fixture
 def schedule(user):
+    # Doses: 8:00, 14:00, 20:00 MSK
+    #        5:00, 11:00, 17:00 UTC
     return Schedule(
         id=1,
         user_id=user.id,
@@ -35,7 +37,6 @@ def schedule(user):
 
 @pytest.mark.asyncio
 async def test_first_dose_calculation_within_daylight_hours(service, user, schedule):
-    # Mock current time to 2024-01-01 07:00 UTC (10:00 AM Moscow time)
     with patch(
         "src.services.schedule_service.datetime", wraps=datetime
     ) as mock_datetime:
@@ -43,7 +44,7 @@ async def test_first_dose_calculation_within_daylight_hours(service, user, sched
         next_dose = await service.get_next_dose_time(user, schedule)
 
         # Verify next dose is current time
-        assert next_dose == datetime(2024, 1, 1, 8, 0, tzinfo=timezone.utc)
+        assert next_dose == datetime(2024, 1, 1, 11, 0, tzinfo=timezone.utc)
 
 
 @pytest.mark.parametrize(
@@ -97,8 +98,8 @@ async def test_schedule_expiration(service, user):
         (1, "04:30", "08:00"),  # 07:30 Moscow → adjusted to 08:00
         (1, "05:00", "08:00"),  # 08:00 Moscow (exact start)
         (3, "05:00", "08:00"),  # First dose
-        (3, "09:00", "12:00"),  # +4h interval
-        (4, "14:30", "17:30"),  # 17:30 Moscow (valid time)
+        (3, "09:00", "14:00"),  # +4h interval
+        (4, "14:30", "20:00"),  # 17:30 Moscow (valid time)
         (6, "17:15", "08:00+1d"),  # 20:15 Moscow → next day
     ],
 )
