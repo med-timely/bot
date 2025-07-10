@@ -64,7 +64,7 @@ async def send_notification(user_id: int, schedule_ids: list[int]):
         schedules = await schedule_svc.select_schedules(
             user_id, schedule_ids, not_taken=True, with_doses=True, with_user=True
         )
-        doses = [await schedule_svc.get_current_dose(s) for s in schedules]
+        doses = [await schedule_svc.get_current_dose(s.user, s) for s in schedules]
 
         new_doses = [(s, d) for s, d in zip(schedules, doses) if not d.id]
         if not new_doses:
