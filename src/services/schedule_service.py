@@ -157,7 +157,11 @@ class ScheduleService:
                     Dose.confirmed,
                     Dose.taken_datetime
                     > text(
-                        "UTC_TIMESTAMP() - INTERVAL ((HOUR(`users`.`day_end`) - HOUR(`users`.`day_start`)) / `schedules`.`doses_per_day` / 2) HOUR"
+                        "IF("
+                        "`schedules`.`doses_per_day` = 1, "
+                        "UTC_DATE(), "
+                        "UTC_TIMESTAMP() - INTERVAL ((HOUR(`users`.`day_end`) - HOUR(`users`.`day_start`)) / (`schedules`.`doses_per_day` - 1) / 2) HOUR"
+                        ")"
                     ),
                 )
                 .exists()
@@ -221,25 +225,46 @@ class ScheduleService:
         self, user: User, schedule: Schedule, now_utc: Optional[datetime] = None
     ) -> Optional[datetime]:
         now_utc = now_utc or datetime.now(timezone.utc)
+        logger.debug(
+            "Calculating next dose time for user %s, schedule %s at %s",
+            user.id,
+            schedule.id,
+            now_utc,
+        )
 
         # Check if schedule has ended
         if schedule.end_datetime is not None and now_utc > schedule.end_datetime:
+            logger.debug("Schedule %s has ended", schedule.id)
             return None
 
         if now_utc < schedule.start_datetime:
+            logger.debug(
+                "Current time is before schedule start. Adjusting to start time."
+            )
             return await self.get_next_dose_time(
                 user,
                 schedule,
-                schedule.start_datetime,
+                user.tz.localize(
+                    datetime.combine(
+                        user.in_local_time(schedule.start_datetime).date(),
+                        user.day_start,
+                    )
+                ).astimezone(timezone.utc),
             )
 
         # Convert to user's local time for accurate comparison
         local_now = user.in_local_time(now_utc)
         if local_now.time() > user.day_end:
+            logger.debug("Current time is after user's day end. Adjusting to next day.")
             return await self.get_next_dose_time(
                 user,
                 schedule,
-                (now_utc + timedelta(days=1)).replace(hour=0, minute=0, second=0),
+                user.tz.localize(
+                    datetime.combine(
+                        (local_now + timedelta(days=1)).date(),
+                        user.day_start,
+                    )
+                ).astimezone(timezone.utc),
             )
 
         # Get all taken doses for today, sorted by time
@@ -250,22 +275,48 @@ class ScheduleService:
             and user.in_local_time(d.taken_datetime).date()
             == user.in_local_time(now_utc).date()
         ]
+        logger.debug("Taken doses today: %s", len(doses))
 
         if len(doses) >= schedule.doses_per_day:
+            logger.debug("Maximum doses for today reached. Adjusting to next day.")
             return await self.get_next_dose_time(
                 user,
                 schedule,
-                (now_utc + timedelta(days=1)).replace(hour=0, minute=0, second=0),
+                user.tz.localize(
+                    datetime.combine(
+                        (local_now + timedelta(days=1)).date(),
+                        user.day_start,
+                    )
+                ).astimezone(timezone.utc),
             )
 
         doses_times = self.get_doses_times(user, schedule)
+        nearest_time = next((t for t in doses_times if t >= local_now.time()), None)
+
+        if nearest_time is None:
+            logger.debug("No dose time available for today. Adjusting to next day.")
+            return await self.get_next_dose_time(
+                user,
+                schedule,
+                user.tz.localize(
+                    datetime.combine(
+                        (local_now + timedelta(days=1)).date(),
+                        user.day_start,
+                    )
+                ).astimezone(timezone.utc),
+            )
 
         # Use user's local date for accurate dose time calculation
-        local_date = user.in_local_time(now_utc).date()
         next_dose_local = user.tz.localize(
-            datetime.combine(local_date, doses_times[len(doses)])
+            datetime.combine(local_now.date(), nearest_time)
         )
-        return max(next_dose_local.astimezone(pytz.utc), now_utc)
+        logger.debug(
+            "Calculated next dose time: %s (local: %s)",
+            next_dose_local.astimezone(timezone.utc),
+            next_dose_local,
+        )
+
+        return max(next_dose_local.astimezone(timezone.utc), now_utc)
 
     async def get_current_dose(self, user: User, schedule: Schedule) -> Dose:
         now = datetime.now(timezone.utc)
@@ -274,7 +325,7 @@ class ScheduleService:
 
         # Create proper timezone-aware datetime for the user's local day boundaries
         day_start_local = user.tz.localize(datetime.combine(local_today, time(0, 0, 0)))
-        day_start_utc = day_start_local.astimezone(pytz.utc)
+        day_start_utc = day_start_local.astimezone(timezone.utc)
         day_end_utc = day_start_utc + timedelta(days=1)
 
         today_doses = (
@@ -298,12 +349,28 @@ class ScheduleService:
         if len(confirmed_doses) >= schedule.doses_per_day:
             return confirmed_doses[0]
 
-        if len(confirmed_doses) == 0:
-            return Dose(
-                user_id=schedule.user_id,
-                schedule_id=schedule.id,
-                taken_datetime=now,
-                confirmed=False,
+        # if len(confirmed_doses) == 0:
+        #     return (
+        #         today_doses[0]
+        #         if today_doses
+        #         else Dose(
+        #             user_id=schedule.user_id,
+        #             schedule_id=schedule.id,
+        #             taken_datetime=now,
+        #             confirmed=False,
+        #         )
+        #     )
+
+        if schedule.doses_per_day == 1:
+            return (
+                today_doses[0]
+                if today_doses
+                else Dose(
+                    user_id=schedule.user_id,
+                    schedule_id=schedule.id,
+                    taken_datetime=now,
+                    confirmed=False,
+                )
             )
 
         interval_minutes = (user.daylight_duration * 60) / (schedule.doses_per_day - 1)
@@ -319,7 +386,7 @@ class ScheduleService:
         local_nearest = user.tz.localize(
             datetime.combine(local_today, nearest_time)
         ) - timedelta(minutes=interval_minutes / 2)
-        nearest_date = local_nearest.astimezone(pytz.utc)
+        nearest_date = local_nearest.astimezone(timezone.utc)
 
         nearest_dose = next(
             (d for d in today_doses if d.taken_datetime > nearest_date), None
