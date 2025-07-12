@@ -337,7 +337,7 @@ class ScheduleService:
                         & (Dose.taken_datetime >= day_start_utc)
                         & (Dose.taken_datetime < day_end_utc)
                     )
-                    .order_by(Dose.taken_datetime.asc())
+                    .order_by(Dose.taken_datetime.desc())
                 )
             )
             .scalars()
@@ -349,13 +349,17 @@ class ScheduleService:
         if len(confirmed_doses) >= schedule.doses_per_day:
             return confirmed_doses[0]
 
-        if len(confirmed_doses) == 0:
-            return Dose(
-                user_id=schedule.user_id,
-                schedule_id=schedule.id,
-                taken_datetime=now,
-                confirmed=False,
-            )
+        # if len(confirmed_doses) == 0:
+        #     return (
+        #         today_doses[0]
+        #         if today_doses
+        #         else Dose(
+        #             user_id=schedule.user_id,
+        #             schedule_id=schedule.id,
+        #             taken_datetime=now,
+        #             confirmed=False,
+        #         )
+        #     )
 
         interval_minutes = (user.daylight_duration * 60) / (schedule.doses_per_day - 1)
         doses_times = self.get_doses_times(user, schedule)
