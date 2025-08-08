@@ -126,7 +126,7 @@ async def handle_phone_input(
         await message.answer(
             _("✅ Phone number saved!"), reply_markup=ReplyKeyboardRemove()
         )
-    elif message.text == "➡️ Skip":
+    elif message.text == _("➡️ Skip"):
         await message.answer(
             _("You can add phone later in profile."), reply_markup=ReplyKeyboardRemove()
         )

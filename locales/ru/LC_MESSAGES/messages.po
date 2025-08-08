@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2025-07-08 10:49+0700\n"
+"POT-Creation-Date: 2025-08-08 10:56+0700\n"
 "PO-Revision-Date: 2025-06-01 09:23+0700\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: ru\n"
@@ -64,7 +64,7 @@ msgstr "❌ Отклонить"
 msgid "📱 Share Phone"
 msgstr "📱 Поделиться контактом"
 
-#: src/bot/handlers/commands/start.py:44
+#: src/bot/handlers/commands/start.py:44 src/bot/handlers/commands/start.py:129
 #: src/bot/handlers/schedules/create.py:36
 #: src/bot/handlers/schedules/create.py:42
 msgid "➡️ Skip"
@@ -360,7 +360,7 @@ msgstr "⏰ Частота: {frequency}"
 #: src/bot/handlers/schedules/create.py:102
 #, python-brace-format
 msgid "📅 Duration: {duration}"
-msgstr "📅 Длительность: {duration}"
+msgstr "📅 Продолжительность: {duration}"
 
 #: src/bot/handlers/schedules/create.py:103
 #, python-brace-format
@@ -425,7 +425,7 @@ msgstr "Пожалуйста, введите правильную частоту
 
 #: src/bot/handlers/schedules/create.py:198
 msgid "📅 Duration in days? (Enter number):"
-msgstr "📅 Сколько раз в день? (Введите число):"
+msgstr "📅 Сколько дней? (Введите число):"
 
 #: src/bot/handlers/schedules/create.py:203
 #: src/bot/handlers/schedules/create.py:223
@@ -579,19 +579,19 @@ msgstr "🎉 Нет активных лекарств для отметки се
 msgid "💊 Which medication did you take?"
 msgstr "💊 Какое лекарство вы приняли?"
 
-#: src/services/schedule_service.py:360
+#: src/services/schedule_service.py:427
 msgid "Schedule not found or doesn't belong to you"
 msgstr "Расписание не найдено или не принадлежит вам"
 
-#: src/services/schedule_service.py:363
+#: src/services/schedule_service.py:430
 msgid "Schedule has ended"
 msgstr "Прием завершен"
 
-#: src/services/schedule_service.py:372
+#: src/services/schedule_service.py:439
 msgid "Dose already recorded"
 msgstr "Доза уже отмечена"
 
-#: src/services/schedule_service.py:377
+#: src/services/schedule_service.py:444
 msgid "✅ Dose logged successfully for {drug_name}!"
 msgstr "✅ Доза отмечена успешно для {drug_name}!"
 
